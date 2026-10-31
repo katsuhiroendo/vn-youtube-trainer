@@ -8,15 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
+  --fs:1.25;
   --bg:#f6f5f1; --card:#fff; --ink:#1f2328; --sub:#5d6670; --line:#e3e1da;
   --acc:#0f766e; --acc2:#115e59; --accbg:#e6f4f1; --warn:#b45309; --bad:#b91c1c; --good:#15803d;
   --t-ngang:#475569; --t-sac:#dc2626; --t-huyen:#2563eb; --t-hoi:#16a34a; --t-nga:#9333ea; --t-nang:#b45309;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:15px;line-height:1.6}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:calc(15px*var(--fs));line-height:1.6}
 .vi{font-family:"Be Vietnam Pro","Noto Sans JP",sans-serif}
 header{background:#12312e;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
-header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em}
+header h1{font-size:calc(17px*var(--fs));margin:0;font-weight:700;letter-spacing:.02em}
 nav{display:flex;gap:4px;flex-wrap:wrap}
 nav button{background:transparent;color:#cfe7e3;border:0;padding:6px 12px;border-radius:6px;font:inherit;cursor:pointer}
 nav button.on{background:#fff;color:#12312e;font-weight:700}
@@ -26,84 +27,86 @@ main{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:18px;padding
 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
 #left{position:sticky;top:64px;align-self:start}
 @media (max-width:900px){
-  header{position:static;padding:8px 12px;gap:6px} header h1{font-size:15px} nav button{padding:4px 9px}
+  header{position:static;padding:8px 12px;gap:6px} header h1{font-size:calc(15px*var(--fs))} nav button{padding:4px 9px}
   #deckSel{margin-left:0;width:100%;max-width:none}
   main{padding:8px;gap:10px} #left{position:sticky;top:0;z-index:15} #left .panel{padding:8px;border-radius:0 0 12px 12px}
-  #left .legend,#deckInfo{display:none} .ctrl{margin-top:6px} .vtext{font-size:24px} .panel{padding:12px}
+  #left .legend,#deckInfo{display:none} .ctrl{margin-top:6px} .vtext{font-size:calc(24px*var(--fs))} .panel{padding:12px}
 }
 #pwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
 #yt,#lv{position:absolute;inset:0;width:100%;height:100%}
 #lv{display:none;background:#000}
-#cover{position:absolute;inset:0;background:#1d2b2a;color:#d6ebe7;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:15px;z-index:5}
+#cover{position:absolute;inset:0;background:#1d2b2a;color:#d6ebe7;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:calc(15px*var(--fs));z-index:5}
 #cover.show{display:flex}
-#cover button{font-size:12px}
+#cover button{font-size:calc(12px*var(--fs))}
 .ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.b{display:inline-block;background:var(--card);border:1px solid var(--line);color:var(--ink);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer;line-height:1.3}
+.b{display:inline-block;background:var(--card);border:1px solid var(--line);color:var(--ink);padding:calc(7px*var(--fs)) calc(12px*var(--fs));border-radius:8px;font:inherit;cursor:pointer;line-height:1.3}
 .b:hover{border-color:#b8b4a8}
 .p{background:var(--acc);color:#fff;border-color:var(--acc)}
 .p:hover{background:var(--acc2)}
-.sm{padding:3px 8px;font-size:13px}
+.sm{padding:3px 8px;font-size:calc(13px*var(--fs))}
 button:disabled{opacity:.45;cursor:default}
-.muted{color:var(--sub);font-size:13px}
-.vtext{font-size:30px;font-weight:600;line-height:1.35;margin:6px 0}
-.vtext.small{font-size:20px}
-.ja{font-size:20px;font-weight:500}
-.en{color:var(--sub);font-size:14px}
-.badge{display:inline-block;white-space:nowrap;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--accbg);color:var(--acc2);margin-right:4px}
+.muted{color:var(--sub);font-size:calc(13px*var(--fs))}
+.vtext{font-size:calc(32px*var(--fs));font-weight:600;line-height:1.35;margin:6px 0}
+.vtext.small{font-size:calc(20px*var(--fs))}
+.ja{font-size:calc(20px*var(--fs));font-weight:500}
+.en{color:var(--sub);font-size:calc(14px*var(--fs))}
+.badge{display:inline-block;white-space:nowrap;font-size:calc(12px*var(--fs));padding:1px 8px;border-radius:99px;background:var(--accbg);color:var(--acc2);margin-right:4px}
 .badge.w{background:#fdf0e1;color:var(--warn)}
 .badge.r{background:#fde8e8;color:var(--bad)}
 .t0{color:var(--t-ngang)}.t1{color:var(--t-sac)}.t2{color:var(--t-huyen)}.t3{color:var(--t-hoi)}.t4{color:var(--t-nga)}.t5{color:var(--t-nang)}
 .notone .t0,.notone .t1,.notone .t2,.notone .t3,.notone .t4,.notone .t5{color:inherit}
-.legend span{margin-right:10px;font-size:12px;white-space:nowrap}
+.legend span{margin-right:10px;font-size:calc(12px*var(--fs));white-space:nowrap}
 .words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.word{border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:14px;cursor:pointer;background:#fbfaf7}
+.word{border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:calc(14px*var(--fs));cursor:pointer;background:#fbfaf7}
 .word b{font-family:"Be Vietnam Pro",sans-serif}
 .task-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
-.task-h h2{font-size:16px;margin:0}
+.task-h h2{font-size:calc(16px*var(--fs));margin:0}
 .prog{height:6px;background:#ece9e1;border-radius:4px;overflow:hidden;margin-bottom:14px}
 .prog>div{height:100%;background:var(--acc);width:0}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 @media (max-width:600px){.choices{grid-template-columns:1fr}}
-.choice{text-align:left;padding:12px;border:1px solid var(--line);background:#fbfaf7;border-radius:10px;font:inherit;cursor:pointer;font-size:16px}
+.choice{text-align:left;padding:12px;border:1px solid var(--line);background:#fbfaf7;border-radius:10px;font:inherit;cursor:pointer;font-size:calc(16px*var(--fs))}
 .choice:disabled{opacity:1;cursor:default}
 .choice.ok{border-color:var(--good);background:#e9f7ee}
 .choice.ng{border-color:var(--bad);background:#fdeeee}
 .tiles{display:flex;flex-wrap:wrap;gap:6px;min-height:46px;padding:8px;border:1px dashed #cfcabd;border-radius:10px;margin:8px 0}
-.tile{font-family:"Be Vietnam Pro",sans-serif;font-size:19px;padding:5px 12px;border-radius:8px;border:1px solid #c9d8d5;background:#f1f8f7;cursor:pointer}
+.tile{font-family:"Be Vietnam Pro",sans-serif;font-size:calc(19px*var(--fs));padding:5px 12px;border-radius:8px;border:1px solid #c9d8d5;background:#f1f8f7;cursor:pointer}
 input.txt,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid #cfcabd;border-radius:8px;background:#fff}
-input.txt{font-family:"Be Vietnam Pro",sans-serif;font-size:20px}
-textarea{font-size:13px;font-family:ui-monospace,monospace}
-.diff span{font-family:"Be Vietnam Pro",sans-serif;font-size:21px;padding:1px 4px;border-radius:5px;margin-right:3px;display:inline-block}
+input.txt{font-family:"Be Vietnam Pro",sans-serif;font-size:calc(20px*var(--fs))}
+textarea{font-size:calc(13px*var(--fs));font-family:ui-monospace,monospace}
+.diff span{font-family:"Be Vietnam Pro",sans-serif;font-size:calc(21px*var(--fs));padding:1px 4px;border-radius:5px;margin-right:3px;display:inline-block}
 .d-ok{background:#e3f5e8;color:#14532d}.d-tone{background:#fdf0dc;color:#7c3d06}.d-miss{background:#fde2e2;color:#7f1d1d}.d-extra{background:#eee;color:#666;text-decoration:line-through}
 .grades{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .grades button{flex:1;min-width:90px;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;cursor:pointer}
-.grades button small{display:block;color:var(--sub);font-size:11px}
+.grades button small{display:block;color:var(--sub);font-size:calc(11px*var(--fs))}
 .grades button.rec{outline:3px solid var(--acc);outline-offset:1px}
 .g1{color:var(--bad)}.g2{color:var(--warn)}.g3{color:var(--good)}.g4{color:#1d4ed8}
 .reveal{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
 .speakbox{background:#f4f8f7;border-radius:10px;padding:10px 12px;margin-top:10px}
 .hidden{display:none!important}
-.wordbox{display:inline-flex;gap:10px;align-items:center;background:#fff7e6;border:1px solid #f1dfb8;border-radius:10px;padding:5px 12px;font-size:18px;flex-wrap:wrap}
+.nudge{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.nudge .nv{color:var(--warn)}
+.wordbox{display:inline-flex;gap:10px;align-items:center;background:#fff7e6;border:1px solid #f1dfb8;border-radius:10px;padding:5px 12px;font-size:calc(18px*var(--fs));flex-wrap:wrap}
 .drop{border:2px dashed #b9c9c6;border-radius:12px;padding:18px;text-align:center;color:var(--sub);margin:10px 0}
 .drop.on{background:var(--accbg);border-color:var(--acc)}
 .step{background:#fbfaf7;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0}
 table{border-collapse:collapse;width:100%}
-td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top;font-size:14px}
-th{font-size:12px;color:var(--sub);font-weight:500}
+td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top;font-size:calc(14px*var(--fs))}
+th{font-size:calc(12px*var(--fs));color:var(--sub);font-weight:500}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
 .stat{background:#fbfaf7;border:1px solid var(--line);border-radius:10px;padding:10px}
-.stat b{display:block;font-size:24px}
+.stat b{display:block;font-size:calc(24px*var(--fs))}
 .bar{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:8px}
 .bar div{flex:1;background:var(--accbg);border-top:3px solid var(--acc);position:relative;min-height:2px}
-.bar div span{position:absolute;top:-18px;width:100%;text-align:center;font-size:11px}
-.barlbl{display:flex;gap:6px}.barlbl span{flex:1;text-align:center;font-size:11px;color:var(--sub)}
+.bar div span{position:absolute;top:-18px;width:100%;text-align:center;font-size:calc(11px*var(--fs))}
+.barlbl{display:flex;gap:6px}.barlbl span{flex:1;text-align:center;font-size:calc(11px*var(--fs));color:var(--sub)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
-label.f{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--sub)}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:calc(13px*var(--fs));color:var(--sub)}
 label.f input,label.f select{font:inherit;padding:5px 8px;border:1px solid #cfcabd;border-radius:6px;color:var(--ink)}
-#banner{background:#fff4e5;border-bottom:1px solid #f3d9b1;color:#7a4b0b;padding:8px 18px;font-size:14px}
-.big-turn{font-size:22px;color:var(--acc2);font-weight:700;text-align:center;padding:10px}
-.kbd{font-size:11px;color:var(--sub);margin-top:10px}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#12312e;color:#fff;padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+#banner{background:#fff4e5;border-bottom:1px solid #f3d9b1;color:#7a4b0b;padding:8px 18px;font-size:calc(14px*var(--fs))}
+.big-turn{font-size:calc(22px*var(--fs));color:var(--acc2);font-weight:700;text-align:center;padding:10px}
+.kbd{font-size:calc(11px*var(--fs));color:var(--sub);margin-top:10px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#12312e;color:#fff;padding:8px 16px;border-radius:8px;font-size:calc(14px*var(--fs));opacity:0;transition:.3s;pointer-events:none;z-index:50}
 #toast.show{opacity:1}
 </style>
 </head>
@@ -162,7 +165,7 @@ let DECKS = [];
 const EMPTY = {vid:'', title:'（教材なし）', url:'#', note:'', items:[]};
 /* ================= 保存 ================= */
 const LS_KEY = 'vnyt-trainer-v1';
-const DEF = {settings:{newPerDay:8, offset:0, rate:1, telex:true, shadowReps:3, gapFactor:1.4, toneColor:true, coverTests:true},
+const DEF = {settings:{newPerDay:8, offset:0, rate:1, telex:true, shadowReps:3, gapFactor:1.4, toneColor:true, coverTests:true, fs:1.4},
   cards:{}, nudge:{}, log:{}, decks:[], deck:'sEP6zVD9H5s', newDay:{d:'',n:0}};
 let S;
 function load(){
@@ -172,6 +175,9 @@ function load(){
 }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
 load();
+function applyFs(){ const f=(S.settings.fs||1.4)*(window.innerWidth<600?0.85:1); document.documentElement.style.setProperty('--fs', f); }
+window.addEventListener('resize',applyFs);
+applyFs();
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -319,11 +325,12 @@ const P = {
 function fmt(t){ t=Math.max(0,t); const m=Math.floor(t/60), s=(t%60).toFixed(1); return `${m}:${s.padStart(4,'0')}`; }
 function clip(it, kind){
   const n=S.nudge[`${deck().vid}|${it.id}`]||[0,0], o=S.settings.offset;
-  const e1 = it.e1!=null? it.e1 : (it.t2!=null? it.t2 : it.t3);
-  if(kind==='once') return [it.t1+o+n[0]-0.25, e1+o+n[1]-0.15];
-  if(kind==='second') return [(it.t2!=null?it.t2:it.t1)+o+n[0]-0.25, it.t3+o+n[1]-0.2];
-  if(kind==='word') return [it.t0+o-0.2, it.t1+o-0.25];
-  return [it.t0+o-0.2, it.t3+o+n[1]-0.2]; // full: 動画の1項目そのまま
+  // e1/t3 は「ベトナム語の終わり＋余白」を表す（教材JSON側で算出済み）
+  const e1 = it.e1!=null? it.e1 : (it.t2!=null? it.t2-0.2 : it.t3);
+  if(kind==='once') return [it.t1+o+n[0]-0.15, e1+o+n[1]];
+  if(kind==='second') return [(it.t2!=null?it.t2:it.t1)+o+n[0]-0.15, it.t3+o+n[1]];
+  if(kind==='word') return [it.t0+o-0.2, it.t1+o-0.2];
+  return [it.t0+o-0.2, it.t3+o+n[1]]; // full: 動画の1項目そのまま
 }
 async function playIt(it,kind,rate){
   if(kind==='twice'){ const ok=await P.seg(...clip(it,'once'),rate); if(!ok||it.t2==null) return ok; await sleep(250); return P.seg(...clip(it,'second'),rate); }
@@ -492,6 +499,18 @@ function finishSession(){
 function wordsHTML(it){
   return `<div class="words">${it.w.map(([v,j])=>`<span class="word" data-tts="${esc(v)}"><b>${toneHTML(v)}</b> ${esc(j)}</span>`).join('')}</div>`;
 }
+function nudgeHTML(it){
+  const n=S.nudge[`${deck().vid}|${it.id}`]||[0,0];
+  return `<div class="nudge muted">音声の区切りがずれる場合：
+   <button class="b sm" data-ng="0,-0.25,${it.id}">開始を早く</button><button class="b sm" data-ng="0,0.25,${it.id}">開始を遅く</button>
+   <button class="b sm" data-ng="1,0.25,${it.id}">終わりが切れる</button><button class="b sm" data-ng="1,-0.25,${it.id}">英語が入る</button>
+   <span class="nv">${n[0]?'開始'+(n[0]>0?'+':'')+n[0].toFixed(2)+'秒 ':''}${n[1]?'終わり'+(n[1]>0?'+':'')+n[1].toFixed(2)+'秒':''}</span></div>`;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-ng]'); if(!b) return;
+  const [i,d,id]=b.dataset.ng.split(','); const it=item(+id); if(!it) return; const k=`${deck().vid}|${id}`; const n=S.nudge[k]||[0,0];
+  n[+i]=Math.round((n[+i]+(+d))*100)/100; S.nudge[k]=n; save();
+  const box=b.closest('.nudge'); if(box) box.outerHTML=nudgeHTML(it);
+  playIt(it, +i===1? 'second':'once'); });
 function wordBox(it){ return it.word? `<div class="wordbox"><span class="vi"><b>${toneHTML(it.word.vi)}</b></span> <span>${esc(it.word.ja)}</span> <button class="b sm" data-pw="${it.id}">▶ 単語</button></div>` : ''; }
 function answerHTML(it, big=true){
   return `${wordBox(it)}<div class="vtext vi ${big?'':'small'} ${S.settings.toneColor?'':'notone'}">${toneHTML(it.vi)}</div>
@@ -514,6 +533,7 @@ async function taskIntro(it){
     <button class="b p" id="shadow">🗣 シャドーイング ×${S.settings.shadowReps}</button>
     <button class="b" id="next">次へ ⏎</button>
    </div>
+   ${nudgeHTML(it)}
    <div class="kbd">Space=もう一度　Enter=次へ　単語をクリックすると合成音声で発音（対応環境のみ）</div>`;
   $('#pFull').onclick=()=>playIt(it,'full');
   $('#pOnce').onclick=()=>playIt(it,'once');
@@ -572,7 +592,7 @@ async function taskListen(it){
   keyH={' ':()=>play()};
   const reveal=(rec,extra='')=>{
     cover(false);
-    $('#ans').innerHTML=`<div class="reveal">${extra}${answerHTML(it,false)}${gradesHTML(c,rec)}</div>`;
+    $('#ans').innerHTML=`<div class="reveal">${extra}${answerHTML(it,false)}${gradesHTML(c,rec)}${nudgeHTML(it)}</div>`;
     bindGrades(k,rec,true);
   };
   const recFrom=(ok)=> !ok?1 : replays>3?2 : (replays<=1&&lv>0?4:3);
@@ -631,7 +651,7 @@ async function taskSpeak(it){
   cover(lv>0);
   const v=$('#v-study');
   v.innerHTML=header('発話：'+LN[lv], it, `<span class="badge">${c.st==='learn'?'学習中':'復習 '+c.ivl+'日'}</span>`)+`
-   ${wordBox(it)}<div class="ja" style="font-size:24px">${esc(it.ja)}</div><div class="en">${esc(it.en)}</div>
+   ${wordBox(it)}<div class="ja" style="font-size:calc(24px*var(--fs))">${esc(it.ja)}</div><div class="en">${esc(it.en)}</div>
    ${lv===0?`<div class="vtext vi">${toneHTML(it.vi)}</div>`:lv===1?`<div class="vtext vi small" style="letter-spacing:.04em">${esc(hintOf(it.vi))}</div>`:''}
    <div class="speakbox">
      <div class="row"><button class="b p" id="mic">🎤 話す</button>${lv===0?'<button class="b" id="model">▶ お手本</button>':''}
@@ -671,7 +691,7 @@ let passiveOn=false;
 function viewPassive(){
   cover(false);
   const v=$('#v-passive');
-  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">聞き流し＋リピート</h2>
+  v.innerHTML=`<h2 style="font-size:calc(16px*var(--fs));margin-top:0">聞き流し＋リピート</h2>
    <p class="muted">日本語を見て → 心の中で言う → ベトナム語を聞く → 声に出して繰り返す、を自動で連続します。家事や散歩中の反復用。</p>
    <div class="row">
     <label class="f">範囲<select id="pScope"><option value="learned">学習開始済み</option><option value="weak">苦手（失敗あり/間隔短い）</option><option value="all">全フレーズ</option></select></label>
@@ -697,7 +717,7 @@ async function runPassive(){
       const [a,b]=clip(it,'once'); const gap=Math.max(1.6,(b-a)*S.settings.gapFactor)/S.settings.rate;
       if(fm==='full'){ box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); if(!await playIt(it,'full')) return; continue; }
       if(fm==='ja-vi'){
-        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="ja" style="font-size:26px">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
+        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="ja" style="font-size:calc(26px*var(--fs))">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
         await sleep(think*1000); if(!passiveOn) return;
         box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
         if(!await playIt(it,'once')) return;
@@ -717,14 +737,14 @@ function stTxt(c){ if(!c) return '<span class="muted">未学習</span>'; if(c.st
 function viewList(){
   cover(false);
   const v=$('#v-list'), vid=deck().vid;
-  v.innerHTML=`<div class="task-h"><h2>フレーズ一覧（${deck().items.length}）</h2><input class="txt" id="flt" placeholder="検索（ベトナム語・日本語・英語）" style="max-width:300px;font-size:14px;font-family:inherit"></div>
+  v.innerHTML=`<div class="task-h"><h2>フレーズ一覧（${deck().items.length}）</h2><input class="txt" id="flt" placeholder="検索（ベトナム語・日本語・英語）" style="max-width:300px;font-size:calc(14px*var(--fs));font-family:inherit"></div>
    <p class="muted">再生位置がずれている場合は「開始/終了」を0.25秒単位で調整できます（全体のずれは「進捗・設定」で一括調整）。「除外」で出題対象から外せます。</p>
    <table><thead><tr><th>#</th><th>ベトナム語 / 日本語 / 英語</th><th>聞/話</th><th>再生</th><th>開始</th><th>終了</th><th>除外</th></tr></thead><tbody id="tb"></tbody></table>`;
   const draw=()=>{
     const f=($('#flt').value||'').toLowerCase();
     $('#tb').innerHTML=deck().items.filter(it=>!f||(it.vi+it.ja+it.en).toLowerCase().includes(f)||sylBase(it.vi.toLowerCase()).includes(sylBase(f))).map(it=>{
       const n=S.nudge[`${vid}|${it.id}`]||[0,0], ex=S.nudge[`${vid}|${it.id}|x`];
-      return `<tr><td>${it.id}</td><td><div class="vi" style="font-size:18px;font-weight:600">${toneHTML(it.vi)}</div><div>${esc(it.ja)}</div><div class="en">${esc(it.en)}</div></td>
+      return `<tr><td>${it.id}</td><td><div class="vi" style="font-size:calc(18px*var(--fs));font-weight:600">${toneHTML(it.vi)}</div><div>${esc(it.ja)}</div><div class="en">${esc(it.en)}</div></td>
        <td>${stTxt(S.cards[key(it.id,'L')])}<br>${stTxt(S.cards[key(it.id,'S')])}</td>
        <td><button class="b sm" data-p="once" data-id="${it.id}">▶越</button> <button class="b sm" data-p="full" data-id="${it.id}">▶全体</button><div class="muted">${fmt(it.t1)}</div></td>
        <td><button class="b sm" data-n="0,-0.25" data-id="${it.id}">−</button> ${n[0].toFixed(2)} <button class="b sm" data-n="0,0.25" data-id="${it.id}">＋</button></td>
@@ -754,7 +774,7 @@ function viewStats(){
   const lg=Object.entries(S.log).sort().slice(-14);
   const streak=(()=>{ let s=0; for(let d=0;d<400;d++){ const k=dayKey(now-d*DAY); if(S.log[k]&&S.log[k].r>0) s++; else if(d>0) break; } return s; })();
   const tot=lg.reduce((a,[,x])=>({r:a.r+(x.r||0),ok:a.ok+(x.ok||0)}),{r:0,ok:0});
-  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">進捗</h2>
+  v.innerHTML=`<h2 style="font-size:calc(16px*var(--fs));margin-top:0">進捗</h2>
    <div class="statgrid">
     <div class="stat"><span class="muted">連続学習日数</span><b>${streak}日</b></div>
     <div class="stat"><span class="muted">聞き取り 定着(21日+)</span><b>${L.mature}</b><span class="muted">若い ${L.young} / 学習中 ${L.learn}</span></div>
@@ -764,19 +784,20 @@ function viewStats(){
    <div class="muted">今後7日間の復習予定（枚）</div>
    <div class="bar" style="margin-top:22px">${fc.map(n=>`<div style="height:${n/mx*100}%"><span>${n}</span></div>`).join('')}</div>
    <div class="barlbl">${days.map(d=>`<span>${d===0?'今日':d===1?'明日':'+'+d}</span>`).join('')}</div>
-   <h2 style="font-size:16px">設定</h2>
+   <h2 style="font-size:calc(16px*var(--fs))">設定</h2>
    <div class="row">
     <label class="f">1日の新出フレーズ数<input type="number" id="sNew" min="0" max="50" value="${S.settings.newPerDay}" style="width:90px"></label>
     <label class="f">全体の再生位置補正(秒)<input type="number" id="sOff" step="0.25" value="${S.settings.offset}" style="width:90px"></label>
     <label class="f">シャドーイング回数<input type="number" id="sRep" min="1" max="10" value="${S.settings.shadowReps}" style="width:90px"></label>
     <label class="f">リピート間隔（音声長×）<input type="number" id="sGap" min="0.8" max="3" step="0.1" value="${S.settings.gapFactor}" style="width:90px"></label>
    </div>
+   <div class="row"><span>文字の大きさ</span>${[[1,'標準'],[1.2,'やや大'],[1.4,'大'],[1.6,'特大'],[1.8,'最大']].map(([v,l])=>`<button class="b sm fsb ${S.settings.fs==v?'p':''}" data-fs="${v}">${l}</button>`).join('')}</div>
    <div class="row">
     <label><input type="checkbox" id="sTelex" ${S.settings.telex?'checked':''}> 書き取りでTelex入力を変換</label>
     <label><input type="checkbox" id="sTone" ${S.settings.toneColor?'checked':''}> 声調で色分け</label>
     <label><input type="checkbox" id="sCov" ${S.settings.coverTests?'checked':''}> テスト中は動画を隠す</label>
    </div>
-   <h2 style="font-size:16px">データ</h2>
+   <h2 style="font-size:calc(16px*var(--fs))">データ</h2>
    <p class="muted">進捗はこのブラウザ（このURLごと）に保存されます。PCとスマホ間では共有されません。定期的に書き出してバックアップしてください。</p>
    <div class="row"><button class="b" id="exp">進捗を書き出す（JSON）</button>
     <label class="b" style="cursor:pointer">進捗を読み込む<input type="file" id="imp" accept=".json" class="hidden"></label>
@@ -784,6 +805,7 @@ function viewStats(){
   const num=(id,k)=>$(id).onchange=e=>{ S.settings[k]=+e.target.value; save(); };
   num('#sNew','newPerDay'); num('#sOff','offset'); num('#sRep','shadowReps'); num('#sGap','gapFactor');
   const chk=(id,k)=>$(id).onchange=e=>{ S.settings[k]=e.target.checked; save(); };
+  document.querySelectorAll('.fsb').forEach(b=>b.onclick=()=>{ S.settings.fs=+b.dataset.fs; save(); applyFs(); viewStats(); });
   chk('#sTelex','telex'); chk('#sTone','toneColor'); chk('#sCov','coverTests');
   $('#exp').onclick=()=>{ const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`vn-trainer-${dayKey()}.json`; a.click(); };
   $('#imp').onchange=async e=>{ try{ const d=JSON.parse(await e.target.files[0].text()); if(!d.cards||!d.settings) throw 0; S=d; save(); toast('読み込みました'); setTimeout(()=>location.reload(),600); }catch(_){ toast('読み込めませんでした'); } };
@@ -859,7 +881,7 @@ function viewImport(){
   cover(false);
   const v=$('#v-import'), gh=ghInfo();
   const up = gh? `https://github.com/${gh.owner}/${gh.repo}/upload/main/content` : null;
-  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">教材（動画）を追加する</h2>
+  v.innerHTML=`<h2 style="font-size:calc(16px*var(--fs));margin-top:0">教材（動画）を追加する</h2>
    <div class="step"><b>方法1（おすすめ）：Claude に作ってもらう</b>
      <ol style="margin:6px 0 0;padding-left:20px">
       <li>YouTubeで動画を開き「…」→「文字起こしを表示」→ 全文をコピーしてテキストに保存</li>
@@ -874,7 +896,7 @@ function viewImport(){
      <label class="f">文字起こし（タイムスタンプ付き）<textarea id="iTr" rows="6"></textarea></label>
      <div class="row"><button class="b p" id="iParse">解析</button></div>
      <div id="iOut"></div></details>
-   <h2 style="font-size:16px">現在の教材</h2><div id="iList"></div>`;
+   <h2 style="font-size:calc(16px*var(--fs))">現在の教材</h2><div id="iList"></div>`;
   const drop=$('#drop');
   drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('on'); }; drop.ondragleave=()=>drop.classList.remove('on');
   drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('on'); importDeckFiles([...e.dataTransfer.files]); };
