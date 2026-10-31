@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YouTubeベトナム語トレーナー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --card:#fff; --ink:#1f2328; --sub:#5d6670; --line:#e3e1da;
+  --acc:#0f766e; --acc2:#115e59; --accbg:#e6f4f1; --warn:#b45309; --bad:#b91c1c; --good:#15803d;
+  --t-ngang:#475569; --t-sac:#dc2626; --t-huyen:#2563eb; --t-hoi:#16a34a; --t-nga:#9333ea; --t-nang:#b45309;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:15px;line-height:1.6}
+.vi{font-family:"Be Vietnam Pro","Noto Sans JP",sans-serif}
+header{background:#12312e;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:transparent;color:#cfe7e3;border:0;padding:6px 12px;border-radius:6px;font:inherit;cursor:pointer}
+nav button.on{background:#fff;color:#12312e;font-weight:700}
+#deckSel{margin-left:auto;font:inherit;padding:4px 6px;border-radius:6px;border:0;max-width:280px}
+main{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+#left{position:sticky;top:64px;align-self:start}
+@media (max-width:900px){
+  header{position:static;padding:8px 12px;gap:6px} header h1{font-size:15px} nav button{padding:4px 9px}
+  #deckSel{margin-left:0;width:100%;max-width:none}
+  main{padding:8px;gap:10px} #left{position:sticky;top:0;z-index:15} #left .panel{padding:8px;border-radius:0 0 12px 12px}
+  #left .legend,#deckInfo{display:none} .ctrl{margin-top:6px} .vtext{font-size:24px} .panel{padding:12px}
+}
+#pwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+#yt,#lv{position:absolute;inset:0;width:100%;height:100%}
+#lv{display:none;background:#000}
+#cover{position:absolute;inset:0;background:#1d2b2a;color:#d6ebe7;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:15px;z-index:5}
+#cover.show{display:flex}
+#cover button{font-size:12px}
+.ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.b{display:inline-block;background:var(--card);border:1px solid var(--line);color:var(--ink);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer;line-height:1.3}
+.b:hover{border-color:#b8b4a8}
+.p{background:var(--acc);color:#fff;border-color:var(--acc)}
+.p:hover{background:var(--acc2)}
+.sm{padding:3px 8px;font-size:13px}
+button:disabled{opacity:.45;cursor:default}
+.muted{color:var(--sub);font-size:13px}
+.vtext{font-size:30px;font-weight:600;line-height:1.35;margin:6px 0}
+.vtext.small{font-size:20px}
+.ja{font-size:20px;font-weight:500}
+.en{color:var(--sub);font-size:14px}
+.badge{display:inline-block;white-space:nowrap;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--accbg);color:var(--acc2);margin-right:4px}
+.badge.w{background:#fdf0e1;color:var(--warn)}
+.badge.r{background:#fde8e8;color:var(--bad)}
+.t0{color:var(--t-ngang)}.t1{color:var(--t-sac)}.t2{color:var(--t-huyen)}.t3{color:var(--t-hoi)}.t4{color:var(--t-nga)}.t5{color:var(--t-nang)}
+.notone .t0,.notone .t1,.notone .t2,.notone .t3,.notone .t4,.notone .t5{color:inherit}
+.legend span{margin-right:10px;font-size:12px;white-space:nowrap}
+.words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.word{border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:14px;cursor:pointer;background:#fbfaf7}
+.word b{font-family:"Be Vietnam Pro",sans-serif}
+.task-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.task-h h2{font-size:16px;margin:0}
+.prog{height:6px;background:#ece9e1;border-radius:4px;overflow:hidden;margin-bottom:14px}
+.prog>div{height:100%;background:var(--acc);width:0}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+@media (max-width:600px){.choices{grid-template-columns:1fr}}
+.choice{text-align:left;padding:12px;border:1px solid var(--line);background:#fbfaf7;border-radius:10px;font:inherit;cursor:pointer;font-size:16px}
+.choice:disabled{opacity:1;cursor:default}
+.choice.ok{border-color:var(--good);background:#e9f7ee}
+.choice.ng{border-color:var(--bad);background:#fdeeee}
+.tiles{display:flex;flex-wrap:wrap;gap:6px;min-height:46px;padding:8px;border:1px dashed #cfcabd;border-radius:10px;margin:8px 0}
+.tile{font-family:"Be Vietnam Pro",sans-serif;font-size:19px;padding:5px 12px;border-radius:8px;border:1px solid #c9d8d5;background:#f1f8f7;cursor:pointer}
+input.txt,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid #cfcabd;border-radius:8px;background:#fff}
+input.txt{font-family:"Be Vietnam Pro",sans-serif;font-size:20px}
+textarea{font-size:13px;font-family:ui-monospace,monospace}
+.diff span{font-family:"Be Vietnam Pro",sans-serif;font-size:21px;padding:1px 4px;border-radius:5px;margin-right:3px;display:inline-block}
+.d-ok{background:#e3f5e8;color:#14532d}.d-tone{background:#fdf0dc;color:#7c3d06}.d-miss{background:#fde2e2;color:#7f1d1d}.d-extra{background:#eee;color:#666;text-decoration:line-through}
+.grades{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.grades button{flex:1;min-width:90px;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;cursor:pointer}
+.grades button small{display:block;color:var(--sub);font-size:11px}
+.grades button.rec{outline:3px solid var(--acc);outline-offset:1px}
+.g1{color:var(--bad)}.g2{color:var(--warn)}.g3{color:var(--good)}.g4{color:#1d4ed8}
+.reveal{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.speakbox{background:#f4f8f7;border-radius:10px;padding:10px 12px;margin-top:10px}
+.hidden{display:none!important}
+.wordbox{display:inline-flex;gap:10px;align-items:center;background:#fff7e6;border:1px solid #f1dfb8;border-radius:10px;padding:5px 12px;font-size:18px;flex-wrap:wrap}
+.drop{border:2px dashed #b9c9c6;border-radius:12px;padding:18px;text-align:center;color:var(--sub);margin:10px 0}
+.drop.on{background:var(--accbg);border-color:var(--acc)}
+.step{background:#fbfaf7;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0}
+table{border-collapse:collapse;width:100%}
+td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top;font-size:14px}
+th{font-size:12px;color:var(--sub);font-weight:500}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+.stat{background:#fbfaf7;border:1px solid var(--line);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:24px}
+.bar{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:8px}
+.bar div{flex:1;background:var(--accbg);border-top:3px solid var(--acc);position:relative;min-height:2px}
+.bar div span{position:absolute;top:-18px;width:100%;text-align:center;font-size:11px}
+.barlbl{display:flex;gap:6px}.barlbl span{flex:1;text-align:center;font-size:11px;color:var(--sub)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--sub)}
+label.f input,label.f select{font:inherit;padding:5px 8px;border:1px solid #cfcabd;border-radius:6px;color:var(--ink)}
+#banner{background:#fff4e5;border-bottom:1px solid #f3d9b1;color:#7a4b0b;padding:8px 18px;font-size:14px}
+.big-turn{font-size:22px;color:var(--acc2);font-weight:700;text-align:center;padding:10px}
+.kbd{font-size:11px;color:var(--sub);margin-top:10px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#12312e;color:#fff;padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>🇻🇳 YouTubeベトナム語トレーナー</h1>
+  <nav id="nav">
+    <button data-v="study" class="on">今日の学習</button>
+    <button data-v="passive">聞き流し</button>
+    <button data-v="list">フレーズ一覧</button>
+    <button data-v="stats">進捗・設定</button>
+    <button data-v="import">動画を追加</button>
+  </nav>
+  <select id="deckSel" title="教材（動画）"></select>
+</header>
+<div id="banner" class="hidden"></div>
+<main>
+  <section id="left">
+    <div class="panel">
+      <div id="pwrap">
+        <div id="yt"></div>
+        <video id="lv" playsinline></video>
+        <div id="cover"><div>🎧 音声のみ（画面の字幕を隠しています）</div><button class="b sm" id="peek">一時的に表示</button></div>
+      </div>
+      <div class="ctrl">
+        <span class="muted">速度</span>
+        <button class="b sm rate" data-r="0.75">0.75×</button>
+        <button class="b sm rate" data-r="0.9">0.9×</button>
+        <button class="b sm rate" data-r="1">1×</button>
+        <button class="b sm" id="stopBtn">■ 停止</button>
+        <span class="muted" id="ptime"></span>
+      </div>
+      <div class="legend muted" style="margin-top:8px">声調:
+        <span class="t0">● ngang 平ら</span><span class="t1">● sắc 上昇</span><span class="t2">● huyền 下降</span><span class="t3">● hỏi 下降→上昇</span><span class="t4">● ngã 揺れ上昇</span><span class="t5">● nặng 低く詰まる</span>
+      </div>
+      <div class="muted" id="deckInfo" style="margin-top:8px"></div>
+    </div>
+  </section>
+  <section id="right">
+    <div id="v-study" class="panel view"></div>
+    <div id="v-passive" class="panel view hidden"></div>
+    <div id="v-list" class="panel view hidden"></div>
+    <div id="v-stats" class="panel view hidden"></div>
+    <div id="v-import" class="panel view hidden"></div>
+  </section>
+</main>
+<div id="toast"></div>
+<script>
+'use strict';
+/* =========================================================
+   教材は content/ フォルダの JSON ファイルから自動で読み込みます。
+   形式: {vid,title,url,note,items:[{id,t0,t1,e1?,t2,t3,vi,ja,en,w,note,word?}]}
+   t0=項目開始 t1=ベトナム語1回目 e1=1回目の終わり(省略時t2) t2=2回目 t3=終了
+   ========================================================= */
+let DECKS = [];
+const EMPTY = {vid:'', title:'（教材なし）', url:'#', note:'', items:[]};
+/* ================= 保存 ================= */
+const LS_KEY = 'vnyt-trainer-v1';
+const DEF = {settings:{newPerDay:8, offset:0, rate:1, telex:true, shadowReps:3, gapFactor:1.4, toneColor:true, coverTests:true},
+  cards:{}, nudge:{}, log:{}, decks:[], deck:'sEP6zVD9H5s', newDay:{d:'',n:0}};
+let S;
+function load(){
+  try{ S = JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ S = {}; }
+  for(const k in DEF) if(S[k]===undefined) S[k]=JSON.parse(JSON.stringify(DEF[k]));
+  for(const k in DEF.settings) if(S.settings[k]===undefined) S.settings[k]=DEF.settings[k];
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
+load();
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; };
+
+function decks(){ const ids=new Set(DECKS.map(d=>d.vid)); return [...DECKS, ...S.decks.filter(d=>!ids.has(d.vid)).map(d=>({...d,local:true}))]; }
+function deck(){ const a=decks(); return a.find(d=>d.vid===S.deck) || a[0] || EMPTY; }
+async function fetchJSON(u){ try{ const r=await fetch(u,{cache:'no-cache'}); if(r.ok) return await r.json(); }catch(e){} return null; }
+async function loadContent(){
+  const files=new Set();
+  const idx=await fetchJSON('content/index.json'); if(Array.isArray(idx)) idx.forEach(f=>files.add(f));
+  // ローカルサーバー: ディレクトリ一覧から *.json を発見
+  try{ const r=await fetch('content/',{cache:'no-cache'}); const ct=r.headers.get('content-type')||''; if(r.ok&&ct.includes('html')){ const h=await r.text(); for(const m of h.matchAll(/href="([^"?/]+\.json)"/g)) files.add(decodeURIComponent(m[1])); } }catch(e){}
+  // GitHub Pages: リポジトリの content/ をAPIで一覧（index.json の更新不要）
+  const gh=location.hostname.match(/^([\w-]+)\.github\.io$/);
+  if(gh){ const repo=location.pathname.split('/').filter(Boolean)[0]; const ls=repo&&await fetchJSON(`https://api.github.com/repos/${gh[1]}/${repo}/contents/content`); if(Array.isArray(ls)) ls.forEach(x=>{ if(/\.json$/.test(x.name)&&x.name!=='index.json') files.add(x.name); }); }
+  files.delete('index.json');
+  const out=[];
+  for(const f of [...files].sort()){ const d=await fetchJSON('content/'+encodeURIComponent(f)); if(d&&d.vid&&Array.isArray(d.items)){ d.file=f; out.push(d); } }
+  DECKS=out;
+}
+function ghInfo(){ const gh=location.hostname.match(/^([\w-]+)\.github\.io$/); if(!gh) return null; const repo=location.pathname.split('/').filter(Boolean)[0]; return repo?{owner:gh[1],repo}:null; }
+function item(id){ return deck().items.find(x=>x.id===id); }
+const key = (id,sk) => `${deck().vid}|${id}|${sk}`;
+
+/* ================= 日付 ================= */
+const MIN=60e3, DAY=864e5;
+function dayKey(t=Date.now()){ const d=new Date(t-4*3600e3); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function endOfDay(){ const d=new Date(Date.now()-4*3600e3); d.setHours(28,0,0,0); return d.getTime(); }
+function logInc(f,n=1){ const k=dayKey(); S.log[k]=S.log[k]||{n:0,r:0,ok:0,sec:0}; S.log[k][f]=(S.log[k][f]||0)+n; }
+
+/* ================= ベトナム語処理 ================= */
+const TONE_MARKS = {'́':1,'̀':2,'̉':3,'̃':4,'̣':5};
+const TONE_CH = ['', '́','̀','̉','̃','̣'];
+function sylTone(s){ for(const ch of s.normalize('NFD')) if(TONE_MARKS[ch]) return TONE_MARKS[ch]; return 0; }
+function sylBase(s){ return s.normalize('NFD').replace(/[̣́̀̉̃]/g,'').normalize('NFC'); }
+function toneHTML(text){
+  return esc(text).split(/(\s+)/).map(w=>{
+    if(/^\s+$/.test(w)||!w) return w;
+    if(!/[a-zA-ZÀ-ỹđĐ]/.test(w)) return w;
+    return `<span class="t${sylTone(w)}">${w}</span>`;
+  }).join('');
+}
+const UNITS=['không','một','hai','ba','bốn','năm','sáu','bảy','tám','chín'];
+function numVi(n){
+  n=+n; if(n<10) return UNITS[n]; if(n===10) return 'mười';
+  if(n<20) return 'mười '+(n%10===5?'lăm':UNITS[n%10]);
+  if(n<100){ const t=Math.floor(n/10),u=n%10; return UNITS[t]+' mươi'+(u===0?'':' '+(u===1?'mốt':u===5?'lăm':u===4?'tư':UNITS[u])); }
+  return String(n);
+}
+function normVi(s){
+  s = s.toLowerCase().normalize('NFC')
+    .replace(/(\d+):00/g,'$1 giờ').replace(/(\d+)h\b/g,'$1 giờ')
+    .replace(/\d+/g, m=>' '+numVi(m)+' ')
+    .replace(/[.,!?;:"“”()…\-–]/g,' ');
+  return s.split(/\s+/).filter(Boolean).map(w=> w==='bốn'?'bốn':w).map(w=>w==='tư'?'bốn':w);
+}
+/* Telex 入力 → ベトナム文字 */
+function placeTone(w, tone){
+  if(!tone) return w;
+  const chars=[...w.normalize('NFC')], low=chars.map(c=>c.toLowerCase());
+  const isV=c=>'aăâeêioôơuưy'.includes(c);
+  let idx=[]; for(let i=0;i<low.length;i++){ if(isV(low[i])){ if(low[i]==='u'&&low[i-1]==='q') continue; if(low[i]==='i'&&low[i-1]==='g'&&isV(low[i+1]||'')) continue; idx.push(i);} }
+  if(!idx.length) return w;
+  let pos;
+  const ow=idx.find(i=>low[i]==='ơ'); const mod=idx.find(i=>'ăâêôơư'.includes(low[i]));
+  if(ow!==undefined) pos=ow; else if(mod!==undefined) pos=mod;
+  else if(idx.length===1) pos=idx[0];
+  else { const last=idx[idx.length-1]; const after=last<low.length-1; pos = after? last : (idx.length>=3? idx[1] : idx[0]); }
+  chars[pos]=(chars[pos]+TONE_CH[tone]).normalize('NFC');
+  return chars.join('');
+}
+function telexWord(w){
+  const tk={s:1,f:2,r:3,x:4,j:5}; const out=[]; let tone=0;
+  const isV=c=>/[aăâeêioôơuưy]/i.test(c);
+  const keep=(src,ch)=> src===src.toUpperCase()&&src!==src.toLowerCase()? ch.toUpperCase(): ch;
+  for(let i=0;i<w.length;i++){
+    const ch=w[i], lc=ch.toLowerCase(), prev=out[out.length-1], pl=prev?prev.toLowerCase():'';
+    if(tk[lc] && i>0 && out.some(isV)){ tone=tk[lc]; continue; }
+    if(lc==='z' && out.some(isV)){ tone=0; continue; }
+    if(pl===lc && 'aeo'.includes(lc)){ out[out.length-1]=keep(prev,{a:'â',e:'ê',o:'ô'}[lc]); continue; }
+    if(pl==='d' && lc==='d'){ out[out.length-1]=keep(prev,'đ'); continue; }
+    if(lc==='w'){
+      if(pl==='a'){ out[out.length-1]=keep(prev,'ă'); continue; }
+      if(pl==='o'){ out[out.length-1]=keep(prev,'ơ'); const pp=out[out.length-2]; if(pp&&pp.toLowerCase()==='u') out[out.length-2]=keep(pp,'ư'); continue; }
+      if(pl==='u'){ out[out.length-1]=keep(prev,'ư'); continue; }
+      out.push(keep(ch,'ư')); continue;
+    }
+    out.push(ch);
+  }
+  return placeTone(out.join(''), tone);
+}
+function telex(s){ return s.split(/(\s+)/).map(w=>/\s/.test(w)?w:w.replace(/[A-Za-zÀ-ỹđĐ]+/g, telexWord)).join(''); }
+
+/* 音節単位のアライメント（声調ミス=0.5） */
+function align(target, got){
+  const T=normVi(target), G=normVi(got); const n=T.length, m=G.length;
+  const sub=(a,b)=> a===b?0 : sylBase(a)===sylBase(b)?0.5 : 1;
+  const D=Array.from({length:n+1},(_,i)=>Array(m+1).fill(0));
+  for(let i=0;i<=n;i++) D[i][0]=i; for(let j=0;j<=m;j++) D[0][j]=j;
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++) D[i][j]=Math.min(D[i-1][j]+1, D[i][j-1]+1, D[i-1][j-1]+sub(T[i-1],G[j-1]));
+  const ops=[]; let i=n,j=m;
+  while(i>0||j>0){
+    if(i>0&&j>0&&D[i][j]===D[i-1][j-1]+sub(T[i-1],G[j-1])){ const c=sub(T[i-1],G[j-1]); ops.push({t:T[i-1],g:G[j-1],k:c===0?'ok':c===0.5?'tone':'miss'}); i--; j--; }
+    else if(i>0&&D[i][j]===D[i-1][j]+1){ ops.push({t:T[i-1],g:'',k:'miss'}); i--; }
+    else { ops.push({t:'',g:G[j-1],k:'extra'}); j--; }
+  }
+  ops.reverse();
+  const score = n? Math.max(0, 1 - D[n][m]/Math.max(n,1)) : 0;
+  return {score, ops};
+}
+function diffHTML(ops){
+  return '<div class="diff">'+ops.map(o=>{
+    if(o.k==='ok') return `<span class="d-ok">${esc(o.t)}</span>`;
+    if(o.k==='tone') return `<span class="d-tone" title="声調・符号の違い">${esc(o.t)}<small> ←${esc(o.g)}</small></span>`;
+    if(o.k==='extra') return `<span class="d-extra">${esc(o.g)}</span>`;
+    return `<span class="d-miss" title="聞き取れず/違い">${esc(o.t)}${o.g?`<small> ←${esc(o.g)}</small>`:''}</span>`;
+  }).join('')+'</div><div class="muted">緑=正解　橙=声調・符号の違い　赤=違い/抜け　灰=余分</div>';
+}
+
+/* ================= プレイヤー ================= */
+const P = {
+  mode:'none', yt:null, ready:false, token:0, peek:false,
+  cur(){ try{ return this.mode==='yt'? this.yt.getCurrentTime() : $('#lv').currentTime; }catch(e){ return 0; } },
+  seek(t){ if(this.mode==='yt') this.yt.seekTo(t,true); else $('#lv').currentTime=t; },
+  play(){ if(this.mode==='yt') this.yt.playVideo(); else $('#lv').play().catch(()=>{}); },
+  pause(){ try{ if(this.mode==='yt') this.yt.pauseVideo(); else $('#lv').pause(); }catch(e){} },
+  rate(r){ try{ if(this.mode==='yt') this.yt.setPlaybackRate(r); else $('#lv').playbackRate=r; }catch(e){} },
+  stop(){ this.token++; this.pause(); },
+  async seg(a,b,rate){
+    if(!this.ready){ toast('動画プレイヤーが準備できていません'); return false; }
+    const tk=++this.token; a=Math.max(0,a); rate=rate||S.settings.rate;
+    this.rate(rate); this.seek(a); this.play();
+    const limit=Date.now()+((b-a)/rate+6)*1000;
+    while(true){
+      await sleep(60);
+      if(tk!==this.token) return false;
+      const c=this.cur(); $('#ptime').textContent=fmt(c);
+      if(c>=b || Date.now()>limit){ this.pause(); return true; }
+    }
+  }
+};
+function fmt(t){ t=Math.max(0,t); const m=Math.floor(t/60), s=(t%60).toFixed(1); return `${m}:${s.padStart(4,'0')}`; }
+function clip(it, kind){
+  const n=S.nudge[`${deck().vid}|${it.id}`]||[0,0], o=S.settings.offset;
+  const e1 = it.e1!=null? it.e1 : (it.t2!=null? it.t2 : it.t3);
+  if(kind==='once') return [it.t1+o+n[0]-0.25, e1+o+n[1]-0.15];
+  if(kind==='second') return [(it.t2!=null?it.t2:it.t1)+o+n[0]-0.25, it.t3+o+n[1]-0.2];
+  if(kind==='word') return [it.t0+o-0.2, it.t1+o-0.25];
+  return [it.t0+o-0.2, it.t3+o+n[1]-0.2]; // full: 動画の1項目そのまま
+}
+async function playIt(it,kind,rate){
+  if(kind==='twice'){ const ok=await P.seg(...clip(it,'once'),rate); if(!ok||it.t2==null) return ok; await sleep(250); return P.seg(...clip(it,'second'),rate); }
+  const [a,b]=clip(it,kind); return P.seg(a,b,rate);
+}
+function cover(on){ $('#cover').classList.toggle('show', !!on && S.settings.coverTests && !P.peek); cover.state=on; }
+$('#peek').onclick=()=>{ P.peek=true; cover(cover.state); setTimeout(()=>{P.peek=false; cover(cover.state);},3000); };
+$('#stopBtn').onclick=()=>P.stop();
+document.querySelectorAll('.rate').forEach(b=>b.onclick=()=>{ S.settings.rate=+b.dataset.r; save(); markRate(); P.rate(S.settings.rate); });
+function markRate(){ document.querySelectorAll('.rate').forEach(b=>b.classList.toggle('p', +b.dataset.r===S.settings.rate)); }
+markRate();
+
+let ytApiLoaded=false;
+function banner(html){ const b=$('#banner'); if(!html){b.classList.add('hidden');return;} b.innerHTML=html; b.classList.remove('hidden'); }
+function initYT(){
+  if(location.protocol==='file:'){
+    banner('⚠ ファイルを直接開いているため、YouTube動画が再生されない可能性があります（YouTubeの仕様）。同梱の <b>start_windows.bat</b>（Macは start_mac.command）から起動してください。マイク機能も起動スクリプト経由で使えます。');
+  }
+  window.onYouTubeIframeAPIReady=()=>{
+    ytApiLoaded=true;
+    P.yt=new YT.Player('yt',{videoId:deck().vid, playerVars:{rel:0,modestbranding:1,playsinline:1,cc_load_policy:0,origin:location.origin.startsWith('http')?location.origin:undefined},
+      events:{onReady:()=>{ P.mode='yt'; P.ready=true; },
+              onError:e=>{ if(!deck().vid) return; banner(`YouTubeの再生エラー（code ${e.data}）。起動スクリプト経由で開くか、<a href="#" id="useLocal">手元の動画ファイルを使う</a>こともできます。`); }}});
+  };
+  const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.onerror=()=>ytFail(); document.head.appendChild(s);
+  setTimeout(()=>{ if(!ytApiLoaded) ytFail(); },9000);
+}
+function ytFail(){
+  if(P.mode==='local') return;
+  banner('YouTubeを読み込めませんでした（オフライン等）。<label style="text-decoration:underline;cursor:pointer">手元の動画/音声ファイルを選択<input type="file" id="lf" accept="video/*,audio/*" class="hidden"></label>して代わりに使えます（同じ動画であること）。');
+  $('#lf').onchange=e=>useLocal(e.target.files[0]);
+}
+function useLocal(file){
+  if(!file) return; const v=$('#lv'); v.src=URL.createObjectURL(file); v.style.display='block'; $('#yt').style.display='none';
+  P.mode='local'; P.ready=true; banner(''); toast('ローカルファイルで再生します');
+}
+document.addEventListener('click',e=>{ if(e.target.id==='useLocal'){ e.preventDefault(); const i=document.createElement('input'); i.type='file'; i.accept='video/*,audio/*'; i.onchange=()=>useLocal(i.files[0]); i.click(); }});
+function switchVideo(){ if(P.mode==='yt'&&P.yt&&P.yt.cueVideoById&&deck().vid) P.yt.cueVideoById(deck().vid); }
+
+/* ================= 音声認識・録音・TTS ================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let viVoice=null;
+function pickVoice(){ try{ viVoice = speechSynthesis.getVoices().find(v=>/^vi/i.test(v.lang))||null; }catch(e){} }
+if(window.speechSynthesis){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function tts(text){ if(!window.speechSynthesis) return; const u=new SpeechSynthesisUtterance(text); u.lang='vi-VN'; if(viVoice) u.voice=viVoice; u.rate=0.8; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+
+let lastRec=null;
+function listenOnce(onInterim){
+  return new Promise(async resolve=>{
+    if(!SR){ resolve({err:'このブラウザは音声認識に対応していません（Chrome / Edge を使用してください）'}); return; }
+    let chunks=[], mr=null, stream=null;
+    try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); mr=new MediaRecorder(stream); mr.ondataavailable=e=>chunks.push(e.data); mr.start(); }catch(e){ mr=null; }
+    const r=new SR(); r.lang='vi-VN'; r.interimResults=true; r.maxAlternatives=5; r.continuous=false;
+    let alts=[], done=false;
+    const finish=(err)=>{ if(done) return; done=true;
+      const fin=()=>{ if(stream) stream.getTracks().forEach(t=>t.stop()); resolve({alts, err}); };
+      if(mr&&mr.state!=='inactive'){ mr.onstop=()=>{ lastRec=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType})); fin(); }; mr.stop(); } else fin(); };
+    r.onresult=e=>{ const res=e.results[e.results.length-1]; if(onInterim) onInterim([...e.results].map(x=>x[0].transcript).join(' '));
+      if(res.isFinal){ alts=[...res].map(a=>a.transcript); } };
+    r.onerror=e=>finish(e.error==='no-speech'?'音声が検出されませんでした':e.error==='not-allowed'?'マイクが許可されていません（起動スクリプト経由で http://localhost から開いてください）':'認識エラー: '+e.error);
+    r.onend=()=>finish(alts.length?null:'聞き取れませんでした。もう一度どうぞ');
+    try{ r.start(); }catch(e){ finish('音声認識を開始できません'); }
+    setTimeout(()=>{ try{r.stop();}catch(e){} }, 12000);
+  });
+}
+function playRec(){ return new Promise(res=>{ if(!lastRec){res();return;} const a=new Audio(lastRec); a.onended=res; a.onerror=res; a.play().catch(res); }); }
+
+/* ================= SRS（間隔反復） =================
+   1フレーズにつき2枚のカード: L=聞き取り, S=発話
+   学習ステップ 1分→10分 → 卒業(1日) → 間隔×易しさ係数
+   間隔に応じて出題レベルを上げる（認識→再構成→完全再生） */
+const STEPS=[1*MIN, 10*MIN];
+function newCard(){ return {st:'learn', step:0, ivl:0, ease:2.5, reps:0, lapses:0, due:Date.now(), last:0}; }
+function level(c){ if(!c||c.st==='learn') return c&&c.lapses>0&&c.ivl>=3?1:0; return c.ivl<3?0 : c.ivl<14?1 : 2; }
+function schedule(k,g){
+  const c=S.cards[k]||newCard(), now=Date.now(); c.reps++; c.last=now;
+  if(c.st==='learn'){
+    if(g===1){ c.step=0; c.due=now+STEPS[0]; }
+    else if(g===2){ c.due=now+STEPS[Math.min(c.step,STEPS.length-1)]; }
+    else if(g===3){ c.step++; if(c.step>=STEPS.length){ c.st='rev'; c.ivl=c.relearn?Math.max(1,c.ivl):1; delete c.relearn; c.due=now+c.ivl*DAY; } else c.due=now+STEPS[c.step]; }
+    else { c.st='rev'; c.ivl=c.relearn?Math.max(2,c.ivl*1.5):3; delete c.relearn; c.due=now+c.ivl*DAY; }
+  } else {
+    if(g===1){ c.lapses++; c.ease=Math.max(1.3,c.ease-0.2); c.st='learn'; c.step=0; c.relearn=true; c.ivl=Math.max(1,Math.round(c.ivl*0.3)); c.due=now+STEPS[0]; }
+    else{
+      const over=Math.min(c.ivl, Math.max(0,(now-c.due)/DAY));
+      let iv = g===2? Math.max(c.ivl+1, c.ivl*1.2) : g===3? (c.ivl+over/2)*c.ease : (c.ivl+over)*c.ease*1.3;
+      if(g===2) c.ease=Math.max(1.3,c.ease-0.15); if(g===4) c.ease+=0.15;
+      iv=Math.min(365, Math.max(c.ivl+1, iv)*(0.95+Math.random()*0.1));
+      c.ivl=Math.round(iv*10)/10; c.due=now+c.ivl*DAY;
+    }
+  }
+  S.cards[k]=c; return c;
+}
+function ivlLabel(c,g){
+  const t=JSON.parse(JSON.stringify(c||newCard())); const bak=S.cards['__p']; S.cards['__p']=t;
+  const r=schedule('__p',g); delete S.cards['__p']; if(bak) S.cards['__p']=bak;
+  const d=r.due-Date.now(); return d<3600e3? Math.round(d/MIN)+'分' : d<DAY? Math.round(d/3600e3)+'時間' : (d/DAY).toFixed(d<10*DAY?1:0)+'日';
+}
+
+/* ================= セッション構築 ================= */
+let Q=[], qi=0, sessStats={done:0,ok:0}, sessStart=0;
+function newToday(){ if(S.newDay.d!==dayKey()) S.newDay={d:dayKey(),n:0}; return S.newDay.n; }
+function dueTasks(){
+  const eod=endOfDay(), out=[];
+  for(const it of deck().items) for(const sk of ['L','S']){
+    const c=S.cards[key(it.id,sk)]; if(!c||c.susp) continue;
+    if(c.st==='learn' || c.due<=eod) out.push({t:sk,id:it.id,due:c.due});
+  }
+  return out.sort((a,b)=>a.due-b.due);
+}
+function freshItems(n){ return deck().items.filter(it=>!S.cards[key(it.id,'L')] && !(S.nudge[`${deck().vid}|${it.id}|x`])).slice(0,Math.max(0,n)); }
+function buildSession(extraNew=0){
+  const rev=dueTasks(); const fresh=freshItems(S.settings.newPerDay-newToday()+extraNew);
+  const q=[]; let r=[...rev];
+  // 復習を先に少し → 新出を1つずつ挟む（インターリーブ）
+  q.push(...r.splice(0,Math.min(6,r.length)));
+  for(const f of fresh){ q.push({t:'I',id:f.id}); q.push(...r.splice(0,3)); }
+  q.push(...r);
+  Q=q; qi=0; sessStats={done:0,ok:0}; sessStart=Date.now();
+}
+function insertAt(task, off){ const p=Math.min(Q.length, qi+1+off); Q.splice(p,0,task); }
+
+/* ================= 学習ビュー ================= */
+function viewStudy(){
+  const v=$('#v-study'); cover(false);
+  const rev=dueTasks(), fresh=freshItems(S.settings.newPerDay-newToday());
+  const total=deck().items.length, started=deck().items.filter(it=>S.cards[key(it.id,'L')]).length;
+  v.innerHTML=`<div class="task-h"><h2>今日の学習</h2><span class="muted">${esc(deck().title)}</span></div>
+   <div class="statgrid">
+    <div class="stat"><span class="muted">復習（期限）</span><b>${rev.length}</b></div>
+    <div class="stat"><span class="muted">新しいフレーズ</span><b>${fresh.length}</b></div>
+    <div class="stat"><span class="muted">学習開始済み</span><b>${started} / ${total}</b></div>
+   </div>
+   <p class="muted">1回の流れ：①動画で確認 → ②シャドーイング ×${S.settings.shadowReps} → ③聞き取りテスト → ④日本語から発話テスト。間違えたものは数問後に再出題し、正解すると間隔を伸ばして翌日以降に復習します。覚えるほど出題が「選択→並べ替え→書き取り」「音読→ヒント付き→日本語だけ」と難しくなります。</p>
+   <div class="row"><button class="b p" id="go" ${rev.length+fresh.length?'':'disabled'}>学習を始める（${rev.length+fresh.length*3}問程度）</button>
+   <button class="b" id="more">新しいフレーズを +5 追加して始める</button></div>
+   ${!SR?'<p class="muted">※ このブラウザは音声認識非対応のため、発話は自己評価になります（Chrome推奨）。</p>':''}`;
+  $('#go').onclick=()=>{ buildSession(0); nextTask(); };
+  $('#more').onclick=()=>{ buildSession(5); nextTask(); };
+}
+function header(title, it, extra=''){
+  const pct = Q.length? Math.round(qi/Q.length*100):0;
+  return `<div class="prog"><div style="width:${pct}%"></div></div>
+   <div class="task-h"><h2>${title}</h2><span class="muted">${qi+1} / ${Q.length}　#${it.id} ${extra}</span></div>`;
+}
+function nextTask(){
+  P.stop();
+  if(qi>=Q.length){ return finishSession(); }
+  const t=Q[qi], it=item(t.id); if(!it){ qi++; return nextTask(); }
+  if(t.t==='I') return taskIntro(it);
+  if(t.t==='L') return taskListen(it);
+  return taskSpeak(it);
+}
+function finishSession(){
+  cover(false); const min=Math.round((Date.now()-sessStart)/MIN); logInc('sec',(Date.now()-sessStart)/1000); save();
+  const rev=dueTasks().filter(x=>x.due<=Date.now()+20*MIN).length;
+  $('#v-study').innerHTML=`<h2>おつかれさまでした</h2>
+   <div class="statgrid"><div class="stat"><span class="muted">解答数</span><b>${sessStats.done}</b></div>
+   <div class="stat"><span class="muted">一発正解率</span><b>${sessStats.done?Math.round(sessStats.ok/sessStats.done*100):0}%</b></div>
+   <div class="stat"><span class="muted">学習時間</span><b>${min}分</b></div></div>
+   ${rev?`<p>まだ学習中のカードが ${rev} 枚あります（数分後に再確認すると定着が良くなります）。</p>`:''}
+   <div class="row"><button class="b p" id="again">続ける</button><button class="b" id="back">戻る</button></div>`;
+  $('#again').onclick=()=>{ buildSession(0); if(Q.length) nextTask(); else { toast('今日の分は完了です。+5で追加できます'); viewStudy(); } };
+  $('#back').onclick=viewStudy;
+}
+function wordsHTML(it){
+  return `<div class="words">${it.w.map(([v,j])=>`<span class="word" data-tts="${esc(v)}"><b>${toneHTML(v)}</b> ${esc(j)}</span>`).join('')}</div>`;
+}
+function wordBox(it){ return it.word? `<div class="wordbox"><span class="vi"><b>${toneHTML(it.word.vi)}</b></span> <span>${esc(it.word.ja)}</span> <button class="b sm" data-pw="${it.id}">▶ 単語</button></div>` : ''; }
+function answerHTML(it, big=true){
+  return `${wordBox(it)}<div class="vtext vi ${big?'':'small'} ${S.settings.toneColor?'':'notone'}">${toneHTML(it.vi)}</div>
+   <div class="ja">${esc(it.ja)}</div><div class="en">${esc(it.en)}</div>
+   ${it.note?`<div class="muted" style="margin-top:4px">📝 ${esc(it.note)}</div>`:''}
+   ${wordsHTML(it)}`;
+}
+document.addEventListener('click',e=>{ const pw=e.target.closest('[data-pw]'); if(pw){ const it=item(+pw.dataset.pw); if(it) playIt(it,'word'); return; } const w=e.target.closest('[data-tts]'); if(w){ if(viVoice) tts(w.dataset.tts); else toast('ベトナム語の合成音声が見つかりません'); }});
+
+/* ---- ① 導入＋シャドーイング ---- */
+async function taskIntro(it){
+  cover(false);
+  const v=$('#v-study');
+  v.innerHTML=header('新しいフレーズ', it, '<span class="badge">NEW</span>')+answerHTML(it)+`
+   <div class="speakbox"><div id="shadowMsg" class="muted">動画の該当部分を再生します。口の形と音の高さに注目してください。</div></div>
+   <div class="row">
+    <button class="b" id="pFull">▶ 動画の該当部分</button>
+    <button class="b" id="pOnce">▶ ベトナム語1回</button>
+    <button class="b" id="pSlow">🐢 0.75×</button>
+    <button class="b p" id="shadow">🗣 シャドーイング ×${S.settings.shadowReps}</button>
+    <button class="b" id="next">次へ ⏎</button>
+   </div>
+   <div class="kbd">Space=もう一度　Enter=次へ　単語をクリックすると合成音声で発音（対応環境のみ）</div>`;
+  $('#pFull').onclick=()=>playIt(it,'full');
+  $('#pOnce').onclick=()=>playIt(it,'once');
+  $('#pSlow').onclick=()=>playIt(it,'once',0.75);
+  $('#shadow').onclick=()=>shadowLoop(it);
+  $('#next').onclick=()=>{
+    for(const sk of ['L','S']) if(!S.cards[key(it.id,sk)]) S.cards[key(it.id,sk)]=newCard();
+    S.newDay.n=newToday()+1; logInc('n'); save();
+    insertAt({t:'L',id:it.id},1); insertAt({t:'S',id:it.id},3);
+    qi++; nextTask();
+  };
+  keyH={' ':()=>playIt(it,'once'), Enter:()=>$('#next').click()};
+  await playIt(it,'full');
+}
+async function shadowLoop(it){
+  const m=$('#shadowMsg'), tk=P.token+1;
+  for(let i=1;i<=S.settings.shadowReps;i++){
+    m.innerHTML=`<b>${i}/${S.settings.shadowReps}</b>　お手本を聞いて…`;
+    const ok=await playIt(it,'once'); if(!ok) return;
+    const [a,b]=clip(it,'once'); const gap=Math.max(1.6,(b-a)*S.settings.gapFactor)/S.settings.rate;
+    m.innerHTML=`<div class="big-turn">🗣 あなたの番（声に出して）</div>`;
+    const t0=P.token; await sleep(gap*1000); if(P.token!==t0) return;
+  }
+  m.innerHTML='シャドーイング完了。納得できたら「次へ」。';
+}
+
+/* ---- グレードUI ---- */
+let keyH={};
+function gradesHTML(c, rec){
+  const L=['','もう一度','難しい','正解','簡単'];
+  return `<div class="grades">${[1,2,3,4].map(g=>`<button class="g${g} ${g===rec?'rec':''}" data-g="${g}">${g}. ${L[g]}<small>${ivlLabel(c,g)}</small></button>`).join('')}</div>
+   <div class="kbd">推奨は枠付き（Enterで選択）。数字キー1〜4でも選べます。</div>`;
+}
+function bindGrades(k, rec, firstTry){
+  const go=g=>{
+    const c=schedule(k,g); logInc('r'); if(g>=3) logInc('ok'); sessStats.done++; if(firstTry&&g>=3) sessStats.ok++;
+    save();
+    if(c.st==='learn') insertAt({...Q[qi]}, g===1?3:6);
+    qi++; nextTask();
+  };
+  document.querySelectorAll('.grades button').forEach(b=>b.onclick=()=>go(+b.dataset.g));
+  keyH={...keyH, '1':()=>go(1),'2':()=>go(2),'3':()=>go(3),'4':()=>go(4), Enter:()=>go(rec)};
+}
+
+/* ---- ③ 聞き取りテスト ---- */
+async function taskListen(it){
+  const k=key(it.id,'L'), c=S.cards[k]||newCard(), lv=level(c);
+  const LN=['意味を選ぶ','聞こえた語を並べる','書き取り（ディクテーション）'];
+  cover(true); let replays=0;
+  const v=$('#v-study');
+  v.innerHTML=header('聞き取り：'+LN[lv], it, `<span class="badge">${c.st==='learn'?'学習中':'復習 '+c.ivl+'日'}</span>`)+`
+   <div class="row"><button class="b p" id="rp">▶ もう一度</button><button class="b" id="rs">🐢 0.75×</button><button class="b" id="r2">▶ 2回分</button><span class="muted" id="rc"></span></div>
+   <div id="q"></div><div id="ans"></div>`;
+  const play=(kind='once',r)=>{ replays++; $('#rc').textContent=`再生 ${replays}回`; return playIt(it,kind,r); };
+  $('#rp').onclick=()=>play(); $('#rs').onclick=()=>play('once',0.75); $('#r2').onclick=()=>play('twice');
+  keyH={' ':()=>play()};
+  const reveal=(rec,extra='')=>{
+    cover(false);
+    $('#ans').innerHTML=`<div class="reveal">${extra}${answerHTML(it,false)}${gradesHTML(c,rec)}</div>`;
+    bindGrades(k,rec,true);
+  };
+  const recFrom=(ok)=> !ok?1 : replays>3?2 : (replays<=1&&lv>0?4:3);
+  const q=$('#q');
+  if(lv===0){
+    const pool=shuffle(deck().items.filter(x=>x.id!==it.id && x.ja!==it.ja)).slice(0,3);
+    const ch=shuffle([it,...pool]);
+    q.innerHTML=`<div class="choices">${ch.map((x,i)=>`<button class="choice" data-id="${x.id}">${i+1}. ${esc(x.ja)}</button>`).join('')}</div>`;
+    let answered=false;
+    const pick=id=>{ if(answered) return; answered=true; const ok=id===it.id;
+      q.querySelectorAll('.choice').forEach(b=>{ if(+b.dataset.id===it.id) b.classList.add('ok'); else if(+b.dataset.id===id) b.classList.add('ng'); b.disabled=true; });
+      reveal(recFrom(ok)); };
+    q.querySelectorAll('.choice').forEach(b=>b.onclick=()=>pick(+b.dataset.id));
+    keyH={...keyH,'1':()=>pick(ch[0].id),'2':()=>pick(ch[1].id),'3':()=>pick(ch[2].id),'4':()=>pick(ch[3]?.id)};
+  } else if(lv===1){
+    const toks=normVi(it.vi);
+    const others=shuffle(deck().items.filter(x=>x.id!==it.id).flatMap(x=>normVi(x.vi))).filter(w=>!toks.includes(w));
+    const bank=shuffle([...toks, ...[...new Set(others)].slice(0, Math.min(3, 1+Math.floor(toks.length/3)))]);
+    const placed=[];
+    q.innerHTML=`<p class="muted">聞こえた順に単語をタップ（余分な語も混ざっています）</p><div class="tiles" id="tgt"></div><div class="tiles" id="bank"></div>
+      <div class="row"><button class="b p" id="chk">判定</button><button class="b" id="giveup">わからない</button></div>`;
+    const draw=()=>{
+      $('#tgt').innerHTML=placed.map((w,i)=>`<span class="tile" data-i="${i}">${esc(w.w)}</span>`).join('');
+      $('#bank').innerHTML=bank.map((w,i)=>placed.find(p=>p.i===i)?'':`<span class="tile" data-b="${i}">${esc(w)}</span>`).join('');
+      $('#tgt').querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ placed.splice(+t.dataset.i,1); draw(); });
+      $('#bank').querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ placed.push({i:+t.dataset.b,w:bank[+t.dataset.b]}); draw(); });
+    };
+    draw();
+    const check=(give)=>{ const got=placed.map(p=>p.w).join(' '); const a=align(it.vi,got);
+      $('#chk').disabled=$('#giveup').disabled=true;
+      reveal(give?1:recFrom(a.score>=0.999), diffHTML(a.ops)); };
+    $('#chk').onclick=()=>check(false); $('#giveup').onclick=()=>check(true);
+    keyH={...keyH, Enter:()=>check(false)};
+  } else {
+    q.innerHTML=`<p class="muted">聞こえたベトナム語を入力（${S.settings.telex?'Telex入力可：aa→â, dd→đ, ow→ơ, s/f/r/x/j=声調':'ベトナム語IMEで入力'}）</p>
+      <input class="txt" id="dict" autocomplete="off" spellcheck="false"><div class="muted" id="prev" style="min-height:22px"></div>
+      <div class="row"><button class="b p" id="chk">判定 ⏎</button><button class="b" id="giveup">わからない</button></div>`;
+    const inp=$('#dict'); inp.focus();
+    inp.oninput=()=>{ $('#prev').innerHTML = S.settings.telex? '→ <span class="vi">'+esc(telex(inp.value))+'</span>':''; };
+    const check=(give)=>{ const got=S.settings.telex?telex(inp.value):inp.value; const a=align(it.vi,got);
+      inp.disabled=true; $('#chk').disabled=$('#giveup').disabled=true;
+      const ok=a.score>=0.95; const rec= give?1 : a.score>=0.95? recFrom(true) : a.score>=0.7? 2 : 1;
+      reveal(rec, `<div class="muted">一致度 ${Math.round(a.score*100)}%</div>`+diffHTML(a.ops)); };
+    $('#chk').onclick=()=>check(false); $('#giveup').onclick=()=>check(true);
+    inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); if(!inp.disabled) check(false); else keyH.Enter&&keyH.Enter(); } };
+    keyH={};
+  }
+  await sleep(250); play();
+}
+
+/* ---- ④ 発話テスト ---- */
+function hintOf(vi){ return vi.split(/\s+/).map(w=>{ const m=w.match(/^([^\s.,?!]{1})([^.,?!]*)([.,?!]*)$/); return m? m[1]+'·'.repeat(Math.min(3,[...m[2]].length))+m[3] : w; }).join(' '); }
+async function taskSpeak(it){
+  const k=key(it.id,'S'), c=S.cards[k]||newCard(), lv=level(c);
+  const LN=['見ながら音読','ヒント付きで言う','日本語から言う'];
+  cover(lv>0);
+  const v=$('#v-study');
+  v.innerHTML=header('発話：'+LN[lv], it, `<span class="badge">${c.st==='learn'?'学習中':'復習 '+c.ivl+'日'}</span>`)+`
+   ${wordBox(it)}<div class="ja" style="font-size:24px">${esc(it.ja)}</div><div class="en">${esc(it.en)}</div>
+   ${lv===0?`<div class="vtext vi">${toneHTML(it.vi)}</div>`:lv===1?`<div class="vtext vi small" style="letter-spacing:.04em">${esc(hintOf(it.vi))}</div>`:''}
+   <div class="speakbox">
+     <div class="row"><button class="b p" id="mic">🎤 話す</button>${lv===0?'<button class="b" id="model">▶ お手本</button>':''}
+     <button class="b hidden" id="cmp">▶ お手本 → 自分の声</button><button class="b" id="self">言えた（自己評価へ）</button></div>
+     <div id="live" class="muted"></div><div id="res"></div>
+   </div><div id="ans"></div>`;
+  let tries=0, best=null, revealed=false;
+  const reveal=(rec)=>{
+    if(revealed) return; revealed=true; cover(false);
+    $('#ans').innerHTML=`<div class="reveal">${answerHTML(it,false)}
+      <div class="row"><button class="b" id="m2">▶ お手本</button><button class="b" id="m3">🐢 0.75×</button></div>${gradesHTML(c,rec)}</div>`;
+    $('#m2').onclick=()=>playIt(it,'once'); $('#m3').onclick=()=>playIt(it,'once',0.75);
+    bindGrades(k,rec,tries<=1);
+    playIt(it,'once');
+  };
+  if(lv===0) $('#model').onclick=()=>playIt(it,'once');
+  $('#self').onclick=()=>reveal(best? (best.score>=0.9?3:best.score>=0.6?2:1) : 3);
+  $('#cmp').onclick=async()=>{ await playIt(it,'once'); await sleep(300); await playRec(); };
+  $('#mic').onclick=async()=>{
+    P.stop(); tries++; const b=$('#mic'); b.disabled=true; b.textContent='🔴 聞いています…'; $('#res').innerHTML='';
+    const r=await listenOnce(t=>$('#live').textContent='認識中: '+t);
+    b.disabled=false; b.textContent='🎤 もう一度話す'; $('#live').textContent='';
+    if(r.err&&!r.alts.length){ $('#res').innerHTML=`<p class="muted">${esc(r.err)}</p>`; return; }
+    let a=null; for(const alt of r.alts){ const x=align(it.vi,alt); if(!a||x.score>a.score) a={...x,alt}; }
+    best=!best||a.score>best.score?a:best;
+    if(lastRec) $('#cmp').classList.remove('hidden');
+    const pct=Math.round(a.score*100);
+    $('#res').innerHTML=`<p>認識結果：<span class="vi"><b>${esc(a.alt)}</b></span>　一致度 <b>${pct}%</b> ${pct>=90?'<span class="badge">よくできました</span>':pct>=60?'<span class="badge w">おしい</span>':'<span class="badge r">もう一度</span>'}</p>${diffHTML(a.ops)}
+      <p class="muted">※音声認識は目安です。声調の違い（橙）は特に要注意。納得できたら「言えた」で答え合わせへ。</p>`;
+    if(a.score>=0.9) setTimeout(()=>reveal(tries===1&&lv>0?4:3),900);
+  };
+  keyH={' ':()=>$('#mic').click(), Enter:()=>$('#self').click()};
+}
+
+/* ================= 聞き流し ================= */
+let passiveOn=false;
+function viewPassive(){
+  cover(false);
+  const v=$('#v-passive');
+  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">聞き流し＋リピート</h2>
+   <p class="muted">日本語を見て → 心の中で言う → ベトナム語を聞く → 声に出して繰り返す、を自動で連続します。家事や散歩中の反復用。</p>
+   <div class="row">
+    <label class="f">範囲<select id="pScope"><option value="learned">学習開始済み</option><option value="weak">苦手（失敗あり/間隔短い）</option><option value="all">全フレーズ</option></select></label>
+    <label class="f">順序<select id="pOrd"><option value="seq">動画順</option><option value="rnd">ランダム</option></select></label>
+    <label class="f">形式<select id="pFmt"><option value="ja-vi">日本語→ベトナム語（発話練習）</option><option value="vi-ja">ベトナム語→日本語（聞き取り）</option><option value="full">動画そのまま</option></select></label>
+    <label class="f">考える時間(秒)<input type="number" id="pThink" value="2.5" step="0.5" min="0" style="width:80px"></label>
+   </div>
+   <div class="row"><button class="b p" id="pStart">▶ 開始</button><button class="b" id="pStop">■ 停止</button></div>
+   <div id="pBox" style="margin-top:12px"></div>`;
+  $('#pStart').onclick=runPassive; $('#pStop').onclick=()=>{ passiveOn=false; P.stop(); };
+}
+async function runPassive(){
+  passiveOn=false; P.stop(); await sleep(100); passiveOn=true;
+  const sc=$('#pScope').value, ord=$('#pOrd').value, fm=$('#pFmt').value, think=+$('#pThink').value||0;
+  let list=deck().items.filter(it=>{ const l=S.cards[key(it.id,'L')], s=S.cards[key(it.id,'S')];
+    if(sc==='all') return true; if(!l) return false; if(sc==='weak') return (l.lapses+(s?.lapses||0))>0 || l.ivl<4 || (s&&s.ivl<4); return true; });
+  if(!list.length){ $('#pBox').innerHTML='<p class="muted">対象がありません（先に「今日の学習」で学習を始めるか、範囲を「全フレーズ」に）。</p>'; return; }
+  const box=$('#pBox'); let n=0;
+  while(passiveOn){
+    const seq= ord==='rnd'? shuffle(list): list;
+    for(const it of seq){
+      if(!passiveOn) return; n++;
+      const [a,b]=clip(it,'once'); const gap=Math.max(1.6,(b-a)*S.settings.gapFactor)/S.settings.rate;
+      if(fm==='full'){ box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); if(!await playIt(it,'full')) return; continue; }
+      if(fm==='ja-vi'){
+        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="ja" style="font-size:26px">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
+        await sleep(think*1000); if(!passiveOn) return;
+        box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
+        if(!await playIt(it,'once')) return;
+      } else {
+        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="big-turn">🎧 意味は？</div>`;
+        if(!await playIt(it,'once')) return; await sleep(think*1000); if(!passiveOn) return;
+        box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
+      }
+      box.insertAdjacentHTML('beforeend','<div class="big-turn">🗣 リピート</div>'); await sleep(gap*1000); if(!passiveOn) return;
+      if(!await playIt(it,'once')) return; await sleep(600);
+    }
+  }
+}
+
+/* ================= 一覧 ================= */
+function stTxt(c){ if(!c) return '<span class="muted">未学習</span>'; if(c.st==='learn') return '<span class="badge w">学習中</span>'; return `<span class="badge">${c.ivl}日</span>`; }
+function viewList(){
+  cover(false);
+  const v=$('#v-list'), vid=deck().vid;
+  v.innerHTML=`<div class="task-h"><h2>フレーズ一覧（${deck().items.length}）</h2><input class="txt" id="flt" placeholder="検索（ベトナム語・日本語・英語）" style="max-width:300px;font-size:14px;font-family:inherit"></div>
+   <p class="muted">再生位置がずれている場合は「開始/終了」を0.25秒単位で調整できます（全体のずれは「進捗・設定」で一括調整）。「除外」で出題対象から外せます。</p>
+   <table><thead><tr><th>#</th><th>ベトナム語 / 日本語 / 英語</th><th>聞/話</th><th>再生</th><th>開始</th><th>終了</th><th>除外</th></tr></thead><tbody id="tb"></tbody></table>`;
+  const draw=()=>{
+    const f=($('#flt').value||'').toLowerCase();
+    $('#tb').innerHTML=deck().items.filter(it=>!f||(it.vi+it.ja+it.en).toLowerCase().includes(f)||sylBase(it.vi.toLowerCase()).includes(sylBase(f))).map(it=>{
+      const n=S.nudge[`${vid}|${it.id}`]||[0,0], ex=S.nudge[`${vid}|${it.id}|x`];
+      return `<tr><td>${it.id}</td><td><div class="vi" style="font-size:18px;font-weight:600">${toneHTML(it.vi)}</div><div>${esc(it.ja)}</div><div class="en">${esc(it.en)}</div></td>
+       <td>${stTxt(S.cards[key(it.id,'L')])}<br>${stTxt(S.cards[key(it.id,'S')])}</td>
+       <td><button class="b sm" data-p="once" data-id="${it.id}">▶越</button> <button class="b sm" data-p="full" data-id="${it.id}">▶全体</button><div class="muted">${fmt(it.t1)}</div></td>
+       <td><button class="b sm" data-n="0,-0.25" data-id="${it.id}">−</button> ${n[0].toFixed(2)} <button class="b sm" data-n="0,0.25" data-id="${it.id}">＋</button></td>
+       <td><button class="b sm" data-n="1,-0.25" data-id="${it.id}">−</button> ${n[1].toFixed(2)} <button class="b sm" data-n="1,0.25" data-id="${it.id}">＋</button></td>
+       <td><input type="checkbox" data-x="${it.id}" ${ex?'checked':''}></td></tr>`; }).join('');
+  };
+  draw(); $('#flt').oninput=draw;
+  $('#tb').onclick=e=>{
+    const b=e.target.closest('button'); if(!b) return; const it=item(+b.dataset.id);
+    if(b.dataset.p) playIt(it,b.dataset.p);
+    if(b.dataset.n){ const [i,d]=b.dataset.n.split(',').map(Number); const k=`${vid}|${it.id}`; const n=S.nudge[k]||[0,0]; n[i]=Math.round((n[i]+d)*100)/100; S.nudge[k]=n; save(); draw(); playIt(it,'once'); }
+  };
+  $('#tb').onchange=e=>{ const x=e.target.dataset.x; if(!x) return; const k=`${vid}|${x}|x`; if(e.target.checked) S.nudge[k]=1; else delete S.nudge[k];
+    for(const sk of ['L','S']){ const c=S.cards[key(+x,sk)]; if(c) c.susp=e.target.checked; } save(); };
+}
+
+/* ================= 進捗・設定 ================= */
+function viewStats(){
+  cover(false);
+  const v=$('#v-stats'), its=deck().items;
+  const cs=sk=>its.map(it=>S.cards[key(it.id,sk)]).filter(Boolean);
+  const cnt=sk=>{ const a=cs(sk); return {learn:a.filter(c=>c.st==='learn').length, young:a.filter(c=>c.st==='rev'&&c.ivl<21).length, mature:a.filter(c=>c.st==='rev'&&c.ivl>=21).length}; };
+  const L=cnt('L'), Sp=cnt('S');
+  const days=[...Array(7)].map((_,i)=>i); const now=Date.now(), eod=endOfDay();
+  const fc=days.map(d=>{ let n=0; for(const sk of ['L','S']) for(const c of cs(sk)){ if(c.susp) continue; const lo= d===0? -Infinity : eod+(d-1)*DAY, hi=eod+d*DAY; if(c.due>lo&&c.due<=hi) n++; } return n; });
+  const mx=Math.max(1,...fc);
+  const lg=Object.entries(S.log).sort().slice(-14);
+  const streak=(()=>{ let s=0; for(let d=0;d<400;d++){ const k=dayKey(now-d*DAY); if(S.log[k]&&S.log[k].r>0) s++; else if(d>0) break; } return s; })();
+  const tot=lg.reduce((a,[,x])=>({r:a.r+(x.r||0),ok:a.ok+(x.ok||0)}),{r:0,ok:0});
+  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">進捗</h2>
+   <div class="statgrid">
+    <div class="stat"><span class="muted">連続学習日数</span><b>${streak}日</b></div>
+    <div class="stat"><span class="muted">聞き取り 定着(21日+)</span><b>${L.mature}</b><span class="muted">若い ${L.young} / 学習中 ${L.learn}</span></div>
+    <div class="stat"><span class="muted">発話 定着(21日+)</span><b>${Sp.mature}</b><span class="muted">若い ${Sp.young} / 学習中 ${Sp.learn}</span></div>
+    <div class="stat"><span class="muted">直近14日 正答率</span><b>${tot.r?Math.round(tot.ok/tot.r*100):0}%</b><span class="muted">${tot.r}回答</span></div>
+   </div>
+   <div class="muted">今後7日間の復習予定（枚）</div>
+   <div class="bar" style="margin-top:22px">${fc.map(n=>`<div style="height:${n/mx*100}%"><span>${n}</span></div>`).join('')}</div>
+   <div class="barlbl">${days.map(d=>`<span>${d===0?'今日':d===1?'明日':'+'+d}</span>`).join('')}</div>
+   <h2 style="font-size:16px">設定</h2>
+   <div class="row">
+    <label class="f">1日の新出フレーズ数<input type="number" id="sNew" min="0" max="50" value="${S.settings.newPerDay}" style="width:90px"></label>
+    <label class="f">全体の再生位置補正(秒)<input type="number" id="sOff" step="0.25" value="${S.settings.offset}" style="width:90px"></label>
+    <label class="f">シャドーイング回数<input type="number" id="sRep" min="1" max="10" value="${S.settings.shadowReps}" style="width:90px"></label>
+    <label class="f">リピート間隔（音声長×）<input type="number" id="sGap" min="0.8" max="3" step="0.1" value="${S.settings.gapFactor}" style="width:90px"></label>
+   </div>
+   <div class="row">
+    <label><input type="checkbox" id="sTelex" ${S.settings.telex?'checked':''}> 書き取りでTelex入力を変換</label>
+    <label><input type="checkbox" id="sTone" ${S.settings.toneColor?'checked':''}> 声調で色分け</label>
+    <label><input type="checkbox" id="sCov" ${S.settings.coverTests?'checked':''}> テスト中は動画を隠す</label>
+   </div>
+   <h2 style="font-size:16px">データ</h2>
+   <p class="muted">進捗はこのブラウザ（このURLごと）に保存されます。PCとスマホ間では共有されません。定期的に書き出してバックアップしてください。</p>
+   <div class="row"><button class="b" id="exp">進捗を書き出す（JSON）</button>
+    <label class="b" style="cursor:pointer">進捗を読み込む<input type="file" id="imp" accept=".json" class="hidden"></label>
+    <button class="b" id="rst" style="color:var(--bad)">この教材の進捗をリセット</button></div>`;
+  const num=(id,k)=>$(id).onchange=e=>{ S.settings[k]=+e.target.value; save(); };
+  num('#sNew','newPerDay'); num('#sOff','offset'); num('#sRep','shadowReps'); num('#sGap','gapFactor');
+  const chk=(id,k)=>$(id).onchange=e=>{ S.settings[k]=e.target.checked; save(); };
+  chk('#sTelex','telex'); chk('#sTone','toneColor'); chk('#sCov','coverTests');
+  $('#exp').onclick=()=>{ const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`vn-trainer-${dayKey()}.json`; a.click(); };
+  $('#imp').onchange=async e=>{ try{ const d=JSON.parse(await e.target.files[0].text()); if(!d.cards||!d.settings) throw 0; S=d; save(); toast('読み込みました'); setTimeout(()=>location.reload(),600); }catch(_){ toast('読み込めませんでした'); } };
+  let armed=false;
+  $('#rst').onclick=e=>{ if(!armed){ armed=true; e.target.textContent='本当にリセット（もう一度クリック）'; return; }
+    const p=deck().vid+'|'; for(const k of Object.keys(S.cards)) if(k.startsWith(p)) delete S.cards[k]; save(); toast('リセットしました'); viewStats(); };
+}
+
+/* ================= 動画を追加（文字起こし取込） ================= */
+const VI_CH=/[ăâđêôơưàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i;
+const VI_W=new Set(['alo','mình','không','có','em','anh','chi','cho','con','hai','ba','nam','sao','nha','xin','la','mai','kem','bia','tan','toi','ga','ca','an','canada']);
+const EN_STOP=new Set('i you he she it we they the a an is are am was were do does did can could will would have has had my your his her our their this that these those to of in on at for with from and or but not please excuse me what where when how why who which there here be been very so just like want go let it\'s i\'m don\'t'.split(' '));
+function isVi(s){
+  const t=s.replace(/[.?!,;:"“”]/g,' ').split(/\s+/).filter(Boolean); if(!t.length) return false;
+  const lw=t.map(x=>x.toLowerCase());
+  const en=lw.filter(x=>EN_STOP.has(x)||EN_STOP.has(x.replace(/'.*$/,''))).length;
+  const vi=t.filter(x=>VI_CH.test(x)||VI_W.has(x.toLowerCase())).length;
+  if(en>=2) return false;
+  return vi/t.length>=0.3 || (vi>0&&en===0);
+}
+const normKey=s=>sylBase(s.toLowerCase()).replace(/[^a-zđ0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function similar(a,b){ const x=normKey(a).split(' '), y=normKey(b).split(' '); if(x.join(' ')===y.join(' ')) return true;
+  const D=Array.from({length:x.length+1},(_,i)=>[i,...Array(y.length).fill(0)]); for(let j=1;j<=y.length;j++) D[0][j]=j;
+  for(let i=1;i<=x.length;i++) for(let j=1;j<=y.length;j++) D[i][j]=Math.min(D[i-1][j]+1,D[i][j-1]+1,D[i-1][j-1]+(x[i-1]===y[j-1]?0:1));
+  return D[x.length][y.length]/Math.max(x.length,y.length) <= 0.34; }
+/* 文字起こし → 時刻付きの文 */
+function transcriptSentences(raw){
+  const lines=raw.replace(/\r/g,'').split('\n'); const re=/^(\d+:\d{2}(?::\d{2})?)(?:\d+ 時間 ?)?(?:\d+ 分 ?)?(?:\d+ 秒)?/;
+  const segs=[];
+  lines.forEach((l,i)=>{ const m=l.trim().match(re); if(m){ const p=m[1].split(':').map(Number); const t=p.length===2?p[0]*60+p[1]:p[0]*3600+p[1]*60+p[2]; segs.push([t,l.trim().slice(m[0].length)]); }
+    else if(!segs.length&&l.trim()) segs.push([0,l]); else if(segs.length) segs[segs.length-1][1]+=' '+l; });
+  let chars='', times=[];
+  segs.forEach(([t,txt],k)=>{ const t2=k+1<segs.length?segs[k+1][0]:t+4; txt=txt.replace(/\[[^\]]*\]/g,'').trim(); if(!txt) return; txt+=' '; for(let j=0;j<txt.length;j++){ chars+=txt[j]; times.push(t+(t2-t)*j/txt.length); } });
+  const out=[]; const rx=/[^.?!]+[.?!]?/g; let m;
+  while((m=rx.exec(chars))){ const lead=m[0].length-m[0].trimStart().length; const s=m[0].trim(); if(s) out.push({t:+times[m.index+lead].toFixed(1), s, vi:isVi(s)}); }
+  return out;
+}
+/* 2つの構成に対応:
+   A) 英語 → ベトナム語 → ベトナム語（例: 日常会話）
+   B) [単語×2] → ベトナム語 → 英語 → ベトナム語（例: 料理名） */
+function parseTranscript(raw){
+  const S_=transcriptSentences(raw), items=[], seen=new Set();
+  const nextStart=(k,fb)=> k<S_.length? S_[k].t : fb;
+  for(let i=0;i<S_.length;i++){
+    if(S_[i].vi || (i>0&&!S_[i-1].vi)) continue;
+    let j=i; while(j+1<S_.length&&!S_[j+1].vi) j++;
+    const en=S_.slice(i,j+1).map(x=>x.s).join(' '), prev=S_[i-1], next=S_[j+1];
+    let it=null;
+    if(prev&&prev.vi&&next&&next.vi&&similar(prev.s,next.s)){
+      it={t0:prev.t,t1:prev.t,e1:S_[i].t,t2:next.t,t3:nextStart(j+2,next.t+4),en,vi:next.s.length>=prev.s.length?next.s:prev.s};
+      const w1=S_[i-2], w2=S_[i-3];
+      if(w1&&w1.vi&&normKey(w1.s).split(' ').length<=6){ it.t0=(w2&&w2.vi&&similar(w1.s,w2.s))?w2.t:w1.t; it.word={vi:w1.s.replace(/[.?!]$/,''),ja:''}; }
+    } else if(next&&next.vi){
+      const n2=S_[j+2]; const rep=n2&&n2.vi&&similar(next.s,n2.s);
+      it={t0:S_[i].t,t1:next.t,t2:rep?n2.t:null,t3:nextStart(rep?j+3:j+2,(rep?n2:next).t+4),en,vi:rep&&n2.s.length>next.s.length?n2.s:next.s};
+    }
+    if(!it) continue;
+    const k=normKey(it.vi); if(items.length>5&&k===normKey(items[0].vi)) break; // ループ動画は1周で打ち切り
+    if(seen.has(k)) continue; seen.add(k);
+    items.push({id:items.length+1,...it,ja:'',w:[],note:''});
+  }
+  return items;
+}
+function vidOf(u){ const m=u.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null); }
+function downloadJSON(obj, name){ const b=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+function validDeck(d){ return d && typeof d.vid==='string' && Array.isArray(d.items) && d.items.every(x=>x.vi&&typeof x.t1==='number'); }
+async function importDeckFiles(files){
+  let n=0;
+  for(const f of files){ try{ const d=JSON.parse(await f.text()); if(!validDeck(d)) throw 0; S.decks=S.decks.filter(x=>x.vid!==d.vid); S.decks.push(d); S.deck=d.vid; n++; }catch(e){ toast(f.name+' は教材ファイルではありません'); } }
+  if(n){ save(); fillDecks(); switchVideo(); toast(n+'件の教材を読み込みました'); show('study'); }
+}
+function viewImport(){
+  cover(false);
+  const v=$('#v-import'), gh=ghInfo();
+  const up = gh? `https://github.com/${gh.owner}/${gh.repo}/upload/main/content` : null;
+  v.innerHTML=`<h2 style="font-size:16px;margin-top:0">教材（動画）を追加する</h2>
+   <div class="step"><b>方法1（おすすめ）：Claude に作ってもらう</b>
+     <ol style="margin:6px 0 0;padding-left:20px">
+      <li>YouTubeで動画を開き「…」→「文字起こしを表示」→ 全文をコピーしてテキストに保存</li>
+      <li>Claude に「動画のURL」と「文字起こし」を渡して「教材JSONを作って」と依頼</li>
+      <li>受け取った <code>.json</code> ファイルを ${up?`<a href="${up}" target="_blank" rel="noopener"><b>GitHub の content フォルダにアップロード</b></a>（ドラッグ＆ドロップ →「Commit changes」）`:'<code>content</code> フォルダに置く'}</li>
+      <li>数分後にこのページを再読み込みすると、全端末（PC・スマホ）に教材が追加されます</li>
+     </ol></div>
+   <div class="step"><b>すぐ試す：教材JSONをこの端末に読み込む</b>
+     <div class="drop" id="drop">ここに .json ファイルをドラッグ＆ドロップ　または <label style="text-decoration:underline;cursor:pointer;color:var(--acc)">ファイルを選択<input type="file" id="dropIn" accept=".json,application/json" multiple class="hidden"></label><br><span class="muted">（この端末・このブラウザだけに追加されます）</span></div></div>
+   <details class="step"><summary><b>方法2：自分で文字起こしから作る</b>（自動抽出＋AIで和訳）</summary>
+     <div class="row"><label class="f" style="flex:1">YouTube URL<input id="iUrl" placeholder="https://www.youtube.com/watch?v=..."></label><label class="f" style="flex:1">教材名<input id="iTitle" placeholder="例：03 買い物のフレーズ"></label></div>
+     <label class="f">文字起こし（タイムスタンプ付き）<textarea id="iTr" rows="6"></textarea></label>
+     <div class="row"><button class="b p" id="iParse">解析</button></div>
+     <div id="iOut"></div></details>
+   <h2 style="font-size:16px">現在の教材</h2><div id="iList"></div>`;
+  const drop=$('#drop');
+  drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('on'); }; drop.ondragleave=()=>drop.classList.remove('on');
+  drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('on'); importDeckFiles([...e.dataTransfer.files]); };
+  $('#dropIn').onchange=e=>importDeckFiles([...e.target.files]);
+  let parsed=null, vid=null;
+  $('#iParse').onclick=()=>{
+    vid=vidOf($('#iUrl').value.trim()); if(!vid){ toast('URLから動画IDを取得できません'); return; }
+    parsed=parseTranscript($('#iTr').value); if(!parsed.length){ toast('ベトナム語の文が見つかりません'); return; }
+    const prompt=`以下はYouTube自動字幕から抽出したベトナム語フレーズ（英語付き）です。自動字幕の誤り（声調記号・誤認識）があればベトナム語(vi)・単語(word)・英語(en)を修正し、自然な日本語訳(ja)、重要語の語釈(w: 1〜4語)、短い補足(note)を付けてください。wordがある項目は word.ja（単語の日本語説明）も付けてください。\n出力はJSON配列のみ：[{"id":1,"vi":"","en":"","ja":"","w":[["単語","意味"]],"note":"","word":{"vi":"","ja":""}}]\n\n`+JSON.stringify(parsed.map(p=>({id:p.id,en:p.en,vi:p.vi,...(p.word?{word:p.word.vi}:{})})));
+    $('#iOut').innerHTML=`<p>${parsed.length} 項目を抽出しました。</p>
+     <div class="row"><button class="b" id="iCopy">和訳プロンプトをコピー</button></div>
+     <textarea id="iPrompt" rows="3" readonly>${esc(prompt)}</textarea>
+     <label class="f" style="margin-top:8px">AIが返したJSONを貼り付け<textarea id="iJa" rows="4"></textarea></label>
+     <div class="row"><button class="b p" id="iSave">反映してこの端末に追加</button><button class="b" id="iDl">反映して教材JSONをダウンロード</button></div>
+     <table><tbody>${parsed.slice(0,10).map(p=>`<tr><td>${p.id}</td><td>${fmt(p.t1)}</td><td>${p.word?'<b>'+esc(p.word.vi)+'</b><br>':''}<span class="vi">${esc(p.vi)}</span></td><td class="en">${esc(p.en)}</td></tr>`).join('')}</tbody></table>${parsed.length>10?'<p class="muted">…ほか</p>':''}`;
+    $('#iCopy').onclick=()=>{ navigator.clipboard.writeText(prompt).then(()=>toast('コピーしました'),()=>{ $('#iPrompt').select(); toast('選択しました。Ctrl+Cでコピー'); }); };
+    const build=()=>{
+      const t=$('#iJa').value.trim();
+      if(t){ try{ const arr=JSON.parse(t.replace(/^```(json)?/,'').replace(/```$/,'')); for(const r of arr){ const p=parsed.find(x=>x.id===r.id); if(!p) continue; for(const f of ['vi','en','ja','note']) if(r[f]) p[f]=r[f]; if(Array.isArray(r.w)) p.w=r.w; if(r.word&&p.word) p.word={vi:r.word.vi||p.word.vi, ja:r.word.ja||''}; } }catch(e){ toast('JSONを読み取れませんでした'); return null; } }
+      parsed.forEach(p=>{ if(!p.ja) p.ja='（未訳）'+p.en; });
+      return {vid, title:$('#iTitle').value.trim()||('動画 '+vid), url:$('#iUrl').value.trim(), note:'文字起こしから自動抽出', items:parsed};
+    };
+    $('#iSave').onclick=()=>{ const d=build(); if(!d) return; S.decks=S.decks.filter(x=>x.vid!==vid); S.decks.push(d); S.deck=vid; save(); fillDecks(); switchVideo(); toast('追加しました'); show('study'); };
+    $('#iDl').onclick=()=>{ const d=build(); if(d) downloadJSON(d, `${vid}.json`); };
+  };
+  $('#iList').innerHTML=decks().length? decks().map(d=>`<div class="row"><b>${esc(d.title)}</b><span class="muted">${d.items.length}項目 ${d.local?'・この端末のみ':'・'+esc(d.file||'')}</span>${d.local?`<button class="b sm" data-dl="${d.vid}">JSON保存</button><button class="b sm" data-del="${d.vid}">削除</button>`:''}</div>`).join('') : '<p class="muted">なし</p>';
+  $('#iList').onclick=e=>{ const dv=e.target.dataset.del, dl=e.target.dataset.dl;
+    if(dl){ const d=S.decks.find(x=>x.vid===dl); if(d) downloadJSON(d, `${d.vid}.json`); }
+    if(dv){ S.decks=S.decks.filter(x=>x.vid!==dv); if(S.deck===dv) S.deck=(decks()[0]||EMPTY).vid; save(); fillDecks(); viewImport(); } };
+}
+
+/* ================= ナビゲーション ================= */
+const VIEWS={study:viewStudy, passive:viewPassive, list:viewList, stats:viewStats, import:viewImport};
+function show(name){
+  passiveOn=false; P.stop(); keyH={};
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===name));
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('hidden', x.id!=='v-'+name));
+  VIEWS[name]();
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+function fillDecks(){
+  $('#deckSel').innerHTML=decks().map(d=>`<option value="${d.vid}" ${d.vid===S.deck?'selected':''}>${esc(d.title)}</option>`).join('');
+  const d=deck(); if(!d.vid){ $('#deckInfo').innerHTML=''; return; } $('#deckInfo').innerHTML=`${d.local?'<span class="badge w">この端末のみ</span> ':''}教材: <a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>（${d.items.length}フレーズ）<br>${esc(d.note||'')}`;
+}
+$('#deckSel').onchange=e=>{ S.deck=e.target.value; save(); fillDecks(); switchVideo(); show('study'); };
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,select')) return;
+  const f=keyH[e.key]; if(f){ e.preventDefault(); f(); }
+});
+document.addEventListener('dragover',e=>{ if([...e.dataTransfer.items].some(i=>i.kind==='file')) e.preventDefault(); });
+document.addEventListener('drop',e=>{ if(e.target.closest('#drop')) return; const fs=[...e.dataTransfer.files].filter(f=>/\.json$/i.test(f.name)); if(fs.length){ e.preventDefault(); importDeckFiles(fs); } });
+(async()=>{
+  $('#v-study').innerHTML='<p class="muted">教材を読み込んでいます…</p>';
+  await loadContent(); fillDecks(); initYT();
+  if(!decks().length){ show('import'); banner('教材が見つかりません。content/ フォルダに教材JSONを置くか、「動画を追加」から読み込んでください。'+(location.protocol==='file:'?'（ファイルを直接開いた場合は読み込めません）':'')); }
+  else show('study');
+})();
+</script>
+</body>
+</html>
