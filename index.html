@@ -308,10 +308,23 @@ const P = {
   play(){ if(this.mode==='yt') this.yt.playVideo(); else $('#lv').play().catch(()=>{}); },
   pause(){ try{ if(this.mode==='yt') this.yt.pauseVideo(); else $('#lv').pause(); }catch(e){} },
   rate(r){ try{ if(this.mode==='yt') this.yt.setPlaybackRate(r); else $('#lv').playbackRate=r; }catch(e){} },
-  stop(){ this.token++; this.pause(); },
+  stop(){ this.token++; this.pause(); try{ AU.el.pause(); }catch(e){} },
+  lastDur:2,
+  async audio(url, rate){
+    const tk=++this.token; this.pause(); rate=rate||S.settings.rate;
+    const a=AU.el; a.pause(); a.src=url; a.playbackRate=rate; try{ a.preservesPitch=true; }catch(e){}
+    try{ await a.play(); }catch(e){ return false; }
+    while(true){
+      await sleep(50);
+      if(tk!==this.token){ a.pause(); return false; }
+      if(a.ended){ if(a.duration) this.lastDur=a.duration/rate; return true; }
+      if(a.error) return false;
+    }
+  },
   async seg(a,b,rate){
     if(!this.ready){ toast('動画プレイヤーが準備できていません'); return false; }
     const tk=++this.token; a=Math.max(0,a); rate=rate||S.settings.rate;
+    this.lastDur=(b-a)/rate; try{ AU.el.pause(); }catch(e){}
     this.rate(rate); this.seek(a); this.play();
     const limit=Date.now()+((b-a)/rate+6)*1000;
     while(true){
@@ -332,7 +345,34 @@ function clip(it, kind){
   if(kind==='word') return [it.t0+o-0.2, it.t1+o-0.2];
   return [it.t0+o-0.2, it.t3+o+n[1]]; // full: 動画の1項目そのまま
 }
+/* ===== 高品質音声（audio/ フォルダ。GitHub Actionsで自動生成） ===== */
+const AU={el:new Audio(), man:null, keys:new Map()};
+AU.el.preload='auto';
+const normT=t=>String(t).normalize('NFC').trim().replace(/\s+/g,' ');
+async function audioKey(text){
+  const n=normT(text).toLowerCase(); if(AU.keys.has(n)) return AU.keys.get(n);
+  const buf=await crypto.subtle.digest('SHA-1', new TextEncoder().encode(n));
+  const k=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,12); AU.keys.set(n,k); return k;
+}
+function voiceFor(){ const v=S.settings.voice||'f'; return v==='alt'? (Math.random()<0.5?'f':'m') : v; }
+async function ttsURL(text, speed){
+  if(!AU.man||!text||!(window.crypto&&crypto.subtle)) return null;
+  const k=await audioKey(text); return AU.man[k]? `audio/${voiceFor()}${speed}/${k}.mp3` : null;
+}
+async function playText(text, speed='n', rate){
+  const u=await ttsURL(text,speed); if(u) return P.audio(u,rate);
+  if(viVoice){ tts(text); return true; } toast('この語の音声はまだありません'); return false;
+}
 async function playIt(it,kind,rate){
+  // once=通常速度, second=ゆっくり, twice=通常→ゆっくり, word=単語, full/video=動画で確認
+  if(kind==='full'||kind==='video'){ const [a,b]=clip(it,'full'); return P.seg(a,b,rate); }
+  if(kind==='twice'){ if(!await playIt(it,'once',rate)) return false; const t0=P.token; await sleep(500); if(P.token!==t0) return false; return playIt(it,'second',rate); }
+  const text = kind==='word'? (it.word&&it.word.vi) : it.vi;
+  const u = await ttsURL(text, kind==='second'?'s':'n');
+  if(u) return P.audio(u, rate);
+  return playVideoClip(it,kind,rate); // 音声未生成のときは動画の音声で代用
+}
+async function playVideoClip(it,kind,rate){
   if(kind==='twice'){ const ok=await P.seg(...clip(it,'once'),rate); if(!ok||it.t2==null) return ok; await sleep(250); return P.seg(...clip(it,'second'),rate); }
   const [a,b]=clip(it,kind); return P.seg(a,b,rate);
 }
@@ -510,7 +550,7 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-ng]'); if
   const [i,d,id]=b.dataset.ng.split(','); const it=item(+id); if(!it) return; const k=`${deck().vid}|${id}`; const n=S.nudge[k]||[0,0];
   n[+i]=Math.round((n[+i]+(+d))*100)/100; S.nudge[k]=n; save();
   const box=b.closest('.nudge'); if(box) box.outerHTML=nudgeHTML(it);
-  playIt(it, +i===1? 'second':'once'); });
+  playVideoClip(it,'full'); });
 function wordBox(it){ return it.word? `<div class="wordbox"><span class="vi"><b>${toneHTML(it.word.vi)}</b></span> <span>${esc(it.word.ja)}</span> <button class="b sm" data-pw="${it.id}">▶ 単語</button></div>` : ''; }
 function answerHTML(it, big=true){
   return `${wordBox(it)}<div class="vtext vi ${big?'':'small'} ${S.settings.toneColor?'':'notone'}">${toneHTML(it.vi)}</div>
@@ -518,26 +558,26 @@ function answerHTML(it, big=true){
    ${it.note?`<div class="muted" style="margin-top:4px">📝 ${esc(it.note)}</div>`:''}
    ${wordsHTML(it)}`;
 }
-document.addEventListener('click',e=>{ const pw=e.target.closest('[data-pw]'); if(pw){ const it=item(+pw.dataset.pw); if(it) playIt(it,'word'); return; } const w=e.target.closest('[data-tts]'); if(w){ if(viVoice) tts(w.dataset.tts); else toast('ベトナム語の合成音声が見つかりません'); }});
+document.addEventListener('click',e=>{ const v2=e.target.closest('[data-vid],[data-p2]'); if(v2){ const it=item(+(v2.dataset.vid||v2.dataset.p2)); if(it){ cover(false); playIt(it, v2.dataset.vid?'video':'second'); } return; } const pw=e.target.closest('[data-pw]'); if(pw){ const it=item(+pw.dataset.pw); if(it) playIt(it,'word'); return; } const w=e.target.closest('[data-tts]'); if(w){ playText(w.dataset.tts,'n'); }});
 
 /* ---- ① 導入＋シャドーイング ---- */
 async function taskIntro(it){
   cover(false);
   const v=$('#v-study');
   v.innerHTML=header('新しいフレーズ', it, '<span class="badge">NEW</span>')+answerHTML(it)+`
-   <div class="speakbox"><div id="shadowMsg" class="muted">動画の該当部分を再生します。口の形と音の高さに注目してください。</div></div>
+   <div class="speakbox"><div id="shadowMsg" class="muted">ベトナム語を「通常→ゆっくり」で再生します。音の高さ（声調）に注目してください。元の動画は「🎬 動画で確認」で見られます。</div></div>
    <div class="row">
-    <button class="b" id="pFull">▶ 動画の該当部分</button>
-    <button class="b" id="pOnce">▶ ベトナム語1回</button>
-    <button class="b" id="pSlow">🐢 0.75×</button>
+    <button class="b" id="pOnce">▶ ベトナム語</button>
+    <button class="b" id="pSlow">🐢 ゆっくり</button>
+    <button class="b" id="pTwice">▶ 通常→ゆっくり</button>
+    <button class="b" id="pFull">🎬 動画で確認</button>
     <button class="b p" id="shadow">🗣 シャドーイング ×${S.settings.shadowReps}</button>
     <button class="b" id="next">次へ ⏎</button>
    </div>
-   ${nudgeHTML(it)}
    <div class="kbd">Space=もう一度　Enter=次へ　単語をクリックすると合成音声で発音（対応環境のみ）</div>`;
   $('#pFull').onclick=()=>playIt(it,'full');
   $('#pOnce').onclick=()=>playIt(it,'once');
-  $('#pSlow').onclick=()=>playIt(it,'once',0.75);
+  $('#pSlow').onclick=()=>playIt(it,'second'); $('#pTwice').onclick=()=>playIt(it,'twice');
   $('#shadow').onclick=()=>shadowLoop(it);
   $('#next').onclick=()=>{
     for(const sk of ['L','S']) if(!S.cards[key(it.id,sk)]) S.cards[key(it.id,sk)]=newCard();
@@ -546,14 +586,14 @@ async function taskIntro(it){
     qi++; nextTask();
   };
   keyH={' ':()=>playIt(it,'once'), Enter:()=>$('#next').click()};
-  await playIt(it,'full');
+  await playIt(it,'twice');
 }
 async function shadowLoop(it){
   const m=$('#shadowMsg'), tk=P.token+1;
   for(let i=1;i<=S.settings.shadowReps;i++){
     m.innerHTML=`<b>${i}/${S.settings.shadowReps}</b>　お手本を聞いて…`;
     const ok=await playIt(it,'once'); if(!ok) return;
-    const [a,b]=clip(it,'once'); const gap=Math.max(1.6,(b-a)*S.settings.gapFactor)/S.settings.rate;
+    const gap=Math.max(1.6,P.lastDur*S.settings.gapFactor);
     m.innerHTML=`<div class="big-turn">🗣 あなたの番（声に出して）</div>`;
     const t0=P.token; await sleep(gap*1000); if(P.token!==t0) return;
   }
@@ -585,14 +625,14 @@ async function taskListen(it){
   cover(true); let replays=0;
   const v=$('#v-study');
   v.innerHTML=header('聞き取り：'+LN[lv], it, `<span class="badge">${c.st==='learn'?'学習中':'復習 '+c.ivl+'日'}</span>`)+`
-   <div class="row"><button class="b p" id="rp">▶ もう一度</button><button class="b" id="rs">🐢 0.75×</button><button class="b" id="r2">▶ 2回分</button><span class="muted" id="rc"></span></div>
+   <div class="row"><button class="b p" id="rp">▶ もう一度</button><button class="b" id="rs">🐢 ゆっくり</button><button class="b" id="r2">▶ 通常→ゆっくり</button><span class="muted" id="rc"></span></div>
    <div id="q"></div><div id="ans"></div>`;
   const play=(kind='once',r)=>{ replays++; $('#rc').textContent=`再生 ${replays}回`; return playIt(it,kind,r); };
-  $('#rp').onclick=()=>play(); $('#rs').onclick=()=>play('once',0.75); $('#r2').onclick=()=>play('twice');
+  $('#rp').onclick=()=>play(); $('#rs').onclick=()=>play('second'); $('#r2').onclick=()=>play('twice');
   keyH={' ':()=>play()};
   const reveal=(rec,extra='')=>{
     cover(false);
-    $('#ans').innerHTML=`<div class="reveal">${extra}${answerHTML(it,false)}${gradesHTML(c,rec)}${nudgeHTML(it)}</div>`;
+    $('#ans').innerHTML=`<div class="reveal">${extra}${answerHTML(it,false)}${gradesHTML(c,rec)}<div class="row"><button class="b sm" data-p2="${it.id}">🐢 ゆっくり</button><button class="b sm" data-vid="${it.id}">🎬 動画で確認</button></div></div>`;
     bindGrades(k,rec,true);
   };
   const recFrom=(ok)=> !ok?1 : replays>3?2 : (replays<=1&&lv>0?4:3);
@@ -662,8 +702,8 @@ async function taskSpeak(it){
   const reveal=(rec)=>{
     if(revealed) return; revealed=true; cover(false);
     $('#ans').innerHTML=`<div class="reveal">${answerHTML(it,false)}
-      <div class="row"><button class="b" id="m2">▶ お手本</button><button class="b" id="m3">🐢 0.75×</button></div>${gradesHTML(c,rec)}</div>`;
-    $('#m2').onclick=()=>playIt(it,'once'); $('#m3').onclick=()=>playIt(it,'once',0.75);
+      <div class="row"><button class="b" id="m2">▶ お手本</button><button class="b" id="m3">🐢 ゆっくり</button><button class="b" data-vid="${it.id}">🎬 動画で確認</button></div>${gradesHTML(c,rec)}</div>`;
+    $('#m2').onclick=()=>playIt(it,'once'); $('#m3').onclick=()=>playIt(it,'second');
     bindGrades(k,rec,tries<=1);
     playIt(it,'once');
   };
@@ -696,7 +736,7 @@ function viewPassive(){
    <div class="row">
     <label class="f">範囲<select id="pScope"><option value="learned">学習開始済み</option><option value="weak">苦手（失敗あり/間隔短い）</option><option value="all">全フレーズ</option></select></label>
     <label class="f">順序<select id="pOrd"><option value="seq">動画順</option><option value="rnd">ランダム</option></select></label>
-    <label class="f">形式<select id="pFmt"><option value="ja-vi">日本語→ベトナム語（発話練習）</option><option value="vi-ja">ベトナム語→日本語（聞き取り）</option><option value="full">動画そのまま</option></select></label>
+    <label class="f">形式<select id="pFmt"><option value="ja-vi">日本語→ベトナム語（発話練習）</option><option value="vi-ja">ベトナム語→日本語（聞き取り）</option><option value="full">元の動画（確認用）</option></select></label>
     <label class="f">考える時間(秒)<input type="number" id="pThink" value="2.5" step="0.5" min="0" style="width:80px"></label>
    </div>
    <div class="row"><button class="b p" id="pStart">▶ 開始</button><button class="b" id="pStop">■ 停止</button></div>
@@ -714,7 +754,6 @@ async function runPassive(){
     const seq= ord==='rnd'? shuffle(list): list;
     for(const it of seq){
       if(!passiveOn) return; n++;
-      const [a,b]=clip(it,'once'); const gap=Math.max(1.6,(b-a)*S.settings.gapFactor)/S.settings.rate;
       if(fm==='full'){ box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); if(!await playIt(it,'full')) return; continue; }
       if(fm==='ja-vi'){
         cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="ja" style="font-size:calc(26px*var(--fs))">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
@@ -726,6 +765,7 @@ async function runPassive(){
         if(!await playIt(it,'once')) return; await sleep(think*1000); if(!passiveOn) return;
         box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
       }
+      const gap=Math.max(1.6,P.lastDur*S.settings.gapFactor);
       box.insertAdjacentHTML('beforeend','<div class="big-turn">🗣 リピート</div>'); await sleep(gap*1000); if(!passiveOn) return;
       if(!await playIt(it,'once')) return; await sleep(600);
     }
@@ -738,7 +778,7 @@ function viewList(){
   cover(false);
   const v=$('#v-list'), vid=deck().vid;
   v.innerHTML=`<div class="task-h"><h2>フレーズ一覧（${deck().items.length}）</h2><input class="txt" id="flt" placeholder="検索（ベトナム語・日本語・英語）" style="max-width:300px;font-size:calc(14px*var(--fs));font-family:inherit"></div>
-   <p class="muted">再生位置がずれている場合は「開始/終了」を0.25秒単位で調整できます（全体のずれは「進捗・設定」で一括調整）。「除外」で出題対象から外せます。</p>
+   <p class="muted">▶=通常 🐢=ゆっくり（学習用の音声）、🎬=元の動画。「開始/終了」は🎬の動画再生位置の調整です。「除外」で出題対象から外せます。</p>
    <table><thead><tr><th>#</th><th>ベトナム語 / 日本語 / 英語</th><th>聞/話</th><th>再生</th><th>開始</th><th>終了</th><th>除外</th></tr></thead><tbody id="tb"></tbody></table>`;
   const draw=()=>{
     const f=($('#flt').value||'').toLowerCase();
@@ -746,7 +786,7 @@ function viewList(){
       const n=S.nudge[`${vid}|${it.id}`]||[0,0], ex=S.nudge[`${vid}|${it.id}|x`];
       return `<tr><td>${it.id}</td><td><div class="vi" style="font-size:calc(18px*var(--fs));font-weight:600">${toneHTML(it.vi)}</div><div>${esc(it.ja)}</div><div class="en">${esc(it.en)}</div></td>
        <td>${stTxt(S.cards[key(it.id,'L')])}<br>${stTxt(S.cards[key(it.id,'S')])}</td>
-       <td><button class="b sm" data-p="once" data-id="${it.id}">▶越</button> <button class="b sm" data-p="full" data-id="${it.id}">▶全体</button><div class="muted">${fmt(it.t1)}</div></td>
+       <td><button class="b sm" data-p="once" data-id="${it.id}">▶</button> <button class="b sm" data-p="second" data-id="${it.id}">🐢</button> <button class="b sm" data-p="video" data-id="${it.id}">🎬</button><div class="muted">${fmt(it.t1)}</div></td>
        <td><button class="b sm" data-n="0,-0.25" data-id="${it.id}">−</button> ${n[0].toFixed(2)} <button class="b sm" data-n="0,0.25" data-id="${it.id}">＋</button></td>
        <td><button class="b sm" data-n="1,-0.25" data-id="${it.id}">−</button> ${n[1].toFixed(2)} <button class="b sm" data-n="1,0.25" data-id="${it.id}">＋</button></td>
        <td><input type="checkbox" data-x="${it.id}" ${ex?'checked':''}></td></tr>`; }).join('');
@@ -755,7 +795,7 @@ function viewList(){
   $('#tb').onclick=e=>{
     const b=e.target.closest('button'); if(!b) return; const it=item(+b.dataset.id);
     if(b.dataset.p) playIt(it,b.dataset.p);
-    if(b.dataset.n){ const [i,d]=b.dataset.n.split(',').map(Number); const k=`${vid}|${it.id}`; const n=S.nudge[k]||[0,0]; n[i]=Math.round((n[i]+d)*100)/100; S.nudge[k]=n; save(); draw(); playIt(it,'once'); }
+    if(b.dataset.n){ const [i,d]=b.dataset.n.split(',').map(Number); const k=`${vid}|${it.id}`; const n=S.nudge[k]||[0,0]; n[i]=Math.round((n[i]+d)*100)/100; S.nudge[k]=n; save(); draw(); playVideoClip(it,'full'); }
   };
   $('#tb').onchange=e=>{ const x=e.target.dataset.x; if(!x) return; const k=`${vid}|${x}|x`; if(e.target.checked) S.nudge[k]=1; else delete S.nudge[k];
     for(const sk of ['L','S']){ const c=S.cards[key(+x,sk)]; if(c) c.susp=e.target.checked; } save(); };
@@ -791,6 +831,7 @@ function viewStats(){
     <label class="f">シャドーイング回数<input type="number" id="sRep" min="1" max="10" value="${S.settings.shadowReps}" style="width:90px"></label>
     <label class="f">リピート間隔（音声長×）<input type="number" id="sGap" min="0.8" max="3" step="0.1" value="${S.settings.gapFactor}" style="width:90px"></label>
    </div>
+   <div class="row"><span>音声</span>${[['f','女性'],['m','男性'],['alt','交互（聞き分け練習）']].map(([v,l])=>`<button class="b sm vcb ${(S.settings.voice||'f')===v?'p':''}" data-vc="${v}">${l}</button>`).join('')}<span class="muted">${AU.man?Object.keys(AU.man).length+'件の音声':'音声を準備中'}</span></div>
    <div class="row"><span>文字の大きさ</span>${[[1,'標準'],[1.2,'やや大'],[1.4,'大'],[1.6,'特大'],[1.8,'最大']].map(([v,l])=>`<button class="b sm fsb ${S.settings.fs==v?'p':''}" data-fs="${v}">${l}</button>`).join('')}</div>
    <div class="row">
     <label><input type="checkbox" id="sTelex" ${S.settings.telex?'checked':''}> 書き取りでTelex入力を変換</label>
@@ -805,6 +846,7 @@ function viewStats(){
   const num=(id,k)=>$(id).onchange=e=>{ S.settings[k]=+e.target.value; save(); };
   num('#sNew','newPerDay'); num('#sOff','offset'); num('#sRep','shadowReps'); num('#sGap','gapFactor');
   const chk=(id,k)=>$(id).onchange=e=>{ S.settings[k]=e.target.checked; save(); };
+  document.querySelectorAll('.vcb').forEach(b=>b.onclick=()=>{ S.settings.voice=b.dataset.vc; save(); viewStats(); playText('Xin chào','n'); });
   document.querySelectorAll('.fsb').forEach(b=>b.onclick=()=>{ S.settings.fs=+b.dataset.fs; save(); applyFs(); viewStats(); });
   chk('#sTelex','telex'); chk('#sTone','toneColor'); chk('#sCov','coverTests');
   $('#exp').onclick=()=>{ const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`vn-trainer-${dayKey()}.json`; a.click(); };
@@ -950,7 +992,8 @@ document.addEventListener('dragover',e=>{ if([...e.dataTransfer.items].some(i=>i
 document.addEventListener('drop',e=>{ if(e.target.closest('#drop')) return; const fs=[...e.dataTransfer.files].filter(f=>/\.json$/i.test(f.name)); if(fs.length){ e.preventDefault(); importDeckFiles(fs); } });
 (async()=>{
   $('#v-study').innerHTML='<p class="muted">教材を読み込んでいます…</p>';
-  await loadContent(); fillDecks(); initYT();
+  await loadContent(); AU.man=await fetchJSON('audio/index.json'); fillDecks(); initYT();
+  if(!AU.man) toast('学習用音声を準備中です（それまでは動画の音声を使います）');
   if(!decks().length){ show('import'); banner('教材が見つかりません。content/ フォルダに教材JSONを置くか、「動画を追加」から読み込んでください。'+(location.protocol==='file:'?'（ファイルを直接開いた場合は読み込めません）':'')); }
   else show('study');
 })();
