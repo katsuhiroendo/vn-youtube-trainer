@@ -15,13 +15,15 @@ permissions:
 
 concurrency:
   group: tts
-  cancel-in-progress: false
+  cancel-in-progress: false  # 実行中のものは止めず、順番に処理
 
 jobs:
   tts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # 再実行時も常に最新の状態で生成する
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -36,8 +38,13 @@ jobs:
             echo "新しい音声はありません"; exit 0
           fi
           git commit -m "音声を自動生成"
-          git pull --rebase origin main
-          git push
+          # 他の実行と同時に動いた場合も、既にある音声を優先して衝突を回避
+          for i in 1 2 3; do
+            git pull --rebase -X ours origin main && git push && exit 0
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
+          exit 1
       - name: GitHub Pages を再公開
         env:
           GH_TOKEN: ${{ github.token }}
