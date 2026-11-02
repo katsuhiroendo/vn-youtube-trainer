@@ -359,6 +359,11 @@ async function ttsURL(text, speed){
   if(!AU.man||!text||!(window.crypto&&crypto.subtle)) return null;
   const k=await audioKey(text); return AU.man[k]? `audio/${voiceFor()}${speed}/${k}.mp3` : null;
 }
+async function playJa(text){
+  if(!AU.ja||!text||!(window.crypto&&crypto.subtle)) return null;
+  const k=await audioKey(text); if(!AU.ja[k]) return null;
+  return P.audio(`audio/ja/${k}.mp3`, 1);
+}
 async function playText(text, speed='n', rate){
   const u=await ttsURL(text,speed); if(u) return P.audio(u,rate);
   if(viVoice){ tts(text); return true; } toast('この語の音声はまだありません'); return false;
@@ -732,15 +737,21 @@ function viewPassive(){
   cover(false);
   const v=$('#v-passive');
   v.innerHTML=`<h2 style="font-size:calc(16px*var(--fs));margin-top:0">聞き流し＋リピート</h2>
-   <p class="muted">日本語を見て → 心の中で言う → ベトナム語を聞く → 声に出して繰り返す、を自動で連続します。家事や散歩中の反復用。</p>
+   <p class="muted">日本語（音声）→ 心の中で言う → ベトナム語（通常）→ リピート → ベトナム語（ゆっくり）→ リピート、を自動で連続します。画面を見ずに耳だけで使えます。</p>
    <div class="row">
     <label class="f">範囲<select id="pScope"><option value="learned">学習開始済み</option><option value="weak">苦手（失敗あり/間隔短い）</option><option value="all">全フレーズ</option></select></label>
     <label class="f">順序<select id="pOrd"><option value="seq">動画順</option><option value="rnd">ランダム</option></select></label>
     <label class="f">形式<select id="pFmt"><option value="ja-vi">日本語→ベトナム語（発話練習）</option><option value="vi-ja">ベトナム語→日本語（聞き取り）</option><option value="full">元の動画（確認用）</option></select></label>
     <label class="f">考える時間(秒)<input type="number" id="pThink" value="2.5" step="0.5" min="0" style="width:80px"></label>
    </div>
+   <div class="row">
+    <label><input type="checkbox" id="pvJa" ${S.settings.pJa!==false?'checked':''}> 日本語の意味を音声で読み上げる</label>
+    <label><input type="checkbox" id="pvSlow" ${S.settings.pSlow!==false?'checked':''}> ゆっくり音声も流す</label>
+    <label><input type="checkbox" id="pvRep" ${S.settings.pRep!==false?'checked':''}> リピートの間を入れる</label>
+   </div>
    <div class="row"><button class="b p" id="pStart">▶ 開始</button><button class="b" id="pStop">■ 停止</button></div>
    <div id="pBox" style="margin-top:12px"></div>`;
+  for(const k of ['pJa','pSlow','pRep']) $('#pv'+k.slice(1)).onchange=e=>{ S.settings[k]=e.target.checked; save(); };
   $('#pStart').onclick=runPassive; $('#pStop').onclick=()=>{ passiveOn=false; P.stop(); };
 }
 async function runPassive(){
@@ -754,20 +765,30 @@ async function runPassive(){
     const seq= ord==='rnd'? shuffle(list): list;
     for(const it of seq){
       if(!passiveOn) return; n++;
-      if(fm==='full'){ box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); if(!await playIt(it,'full')) return; continue; }
+      const head=`<div class="muted">#${it.id}（${n}）</div>`;
+      const useJa=$('#pvJa').checked, useSlow=$('#pvSlow').checked, useRep=$('#pvRep').checked;
+      const repeat=async()=>{ if(!useRep) return true; const gap=Math.max(1.6,P.lastDur*S.settings.gapFactor);
+        box.insertAdjacentHTML('beforeend','<div class="big-turn rep">🗣 リピート</div>'); await sleep(gap*1000);
+        const r=box.querySelector('.rep'); if(r) r.remove(); return passiveOn; };
+      const ja=async()=>{ if(useJa){ const ok=await playJa(it.ja); if(ok===false) return false; if(ok===null) await sleep(1200); } else await sleep(1200); return passiveOn; };
+      if(fm==='full'){ box.innerHTML=head+answerHTML(it); if(!await playIt(it,'full')) return; continue; }
       if(fm==='ja-vi'){
-        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="ja" style="font-size:calc(26px*var(--fs))">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
+        // 日本語（音声）→ 考える → ベトナム語（通常）→ リピート → ベトナム語（ゆっくり）→ リピート
+        cover(true); box.innerHTML=head+`<div class="ja" style="font-size:calc(26px*var(--fs))">${esc(it.ja)}</div><div class="big-turn">ベトナム語で言うと？</div>`;
+        if(!await ja()) return;
         await sleep(think*1000); if(!passiveOn) return;
-        box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
-        if(!await playIt(it,'once')) return;
+        box.innerHTML=head+answerHTML(it); cover(false);
+        if(!await playIt(it,'once')) return; if(!await repeat()) return;
       } else {
-        cover(true); box.innerHTML=`<div class="muted">#${it.id}（${n}）</div><div class="big-turn">🎧 意味は？</div>`;
+        // ベトナム語（通常）→ 考える → 日本語（音声）→ ベトナム語（ゆっくり）→ リピート
+        cover(true); box.innerHTML=head+`<div class="big-turn">🎧 意味は？</div>`;
         if(!await playIt(it,'once')) return; await sleep(think*1000); if(!passiveOn) return;
-        box.innerHTML=`<div class="muted">#${it.id}（${n}）</div>`+answerHTML(it); cover(false);
+        box.innerHTML=head+answerHTML(it); cover(false);
+        if(!await ja()) return; await sleep(300);
+        if(!useSlow){ if(!await playIt(it,'once')) return; if(!await repeat()) return; }
       }
-      const gap=Math.max(1.6,P.lastDur*S.settings.gapFactor);
-      box.insertAdjacentHTML('beforeend','<div class="big-turn">🗣 リピート</div>'); await sleep(gap*1000); if(!passiveOn) return;
-      if(!await playIt(it,'once')) return; await sleep(600);
+      if(useSlow){ if(!await playIt(it,'second')) return; if(!await repeat()) return; }
+      await sleep(700);
     }
   }
 }
@@ -992,7 +1013,7 @@ document.addEventListener('dragover',e=>{ if([...e.dataTransfer.items].some(i=>i
 document.addEventListener('drop',e=>{ if(e.target.closest('#drop')) return; const fs=[...e.dataTransfer.files].filter(f=>/\.json$/i.test(f.name)); if(fs.length){ e.preventDefault(); importDeckFiles(fs); } });
 (async()=>{
   $('#v-study').innerHTML='<p class="muted">教材を読み込んでいます…</p>';
-  await loadContent(); AU.man=await fetchJSON('audio/index.json'); fillDecks(); initYT();
+  await loadContent(); AU.man=await fetchJSON('audio/index.json'); AU.ja=await fetchJSON('audio/ja.json'); fillDecks(); initYT();
   if(!AU.man) toast('学習用音声を準備中です（それまでは動画の音声を使います）');
   if(!decks().length){ show('import'); banner('教材が見つかりません。content/ フォルダに教材JSONを置くか、「動画を追加」から読み込んでください。'+(location.protocol==='file:'?'（ファイルを直接開いた場合は読み込めません）':'')); }
   else show('study');

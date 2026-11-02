@@ -5,6 +5,7 @@
 - 速度: n = 通常 / s = ゆっくり
 - 出力: audio/{voice}{speed}/{key}.mp3   key = sha1(正規化テキストの小文字)[:12]
 - 一覧: audio/index.json  {key: テキスト}
+- 日本語訳: audio/ja/{key}.mp3（ja-JP-NanamiNeural）、一覧 audio/ja.json（流し聞き用）
 既に存在するファイルは作り直さないので、教材を追加したときは新しい分だけ生成される。
 """
 import asyncio, glob, hashlib, json, os, re, sys, unicodedata
@@ -13,6 +14,7 @@ import edge_tts
 
 VOICES = {'f': 'vi-VN-HoaiMyNeural', 'm': 'vi-VN-NamMinhNeural'}
 SPEEDS = {'n': '-5%', 's': '-35%'}
+JA_VOICE = 'ja-JP-NanamiNeural'
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AUDIO = os.path.join(ROOT, 'audio')
 
@@ -33,6 +35,25 @@ def speakable(t):
     return re.sub(r'\s+', ' ', t).strip(' /')
 
 
+def speakable_ja(t):
+    t = norm(t).replace('（', '、').replace('）', '').replace('(', '、').replace(')', '')
+    t = t.replace('／', '、').replace('/', '、').replace('〜', '')
+    t = re.sub(r'、+', '、', t).replace('。、', '。')
+    return t.strip('、 ')
+
+
+def collect_ja():
+    texts = {}
+    for f in sorted(glob.glob(os.path.join(ROOT, 'content', '*.json'))):
+        if f.endswith('index.json'):
+            continue
+        for it in json.load(open(f, encoding='utf-8')).get('items', []):
+            ja = it.get('ja', '')
+            if ja and speakable_ja(ja):
+                texts[key(ja)] = norm(ja)
+    return texts
+
+
 def collect():
     texts = {}
     for f in sorted(glob.glob(os.path.join(ROOT, 'content', '*.json'))):
@@ -50,12 +71,15 @@ def collect():
     return texts
 
 
-async def synth(text, voice, rate, path, sem):
+async def synth(text, voice, rate, path, sem, ja=False):
     async with sem:
         for attempt in range(4):
             try:
                 tmp = path + '.tmp'
-                await edge_tts.Communicate(speakable(text), VOICES[voice], rate=rate).save(tmp)
+                if ja:
+                    await edge_tts.Communicate(speakable_ja(text), JA_VOICE, rate=rate).save(tmp)
+                else:
+                    await edge_tts.Communicate(speakable(text), VOICES[voice], rate=rate).save(tmp)
                 if os.path.getsize(tmp) < 500:
                     raise RuntimeError('empty audio')
                 os.replace(tmp, path)
@@ -78,11 +102,19 @@ async def main():
                 p = os.path.join(d, k + '.mp3')
                 if not os.path.exists(p):
                     jobs.append(synth(t, v, rate, p, sem))
-    print(f'texts={len(texts)} new files={len(jobs)}')
+    jat = collect_ja()
+    jd = os.path.join(AUDIO, 'ja'); os.makedirs(jd, exist_ok=True)
+    for k, t in jat.items():
+        p = os.path.join(jd, k + '.mp3')
+        if not os.path.exists(p):
+            jobs.append(synth(t, 'ja', '+0%', p, sem, ja=True))
+    print(f'texts={len(texts)} ja={len(jat)} new files={len(jobs)}')
     res = await asyncio.gather(*jobs)
     ok = {k: t for k, t in texts.items()
           if all(os.path.exists(os.path.join(AUDIO, v + s, k + '.mp3')) for v in VOICES for s in SPEEDS)}
     json.dump(ok, open(os.path.join(AUDIO, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0, sort_keys=True)
+    jok = {k: t for k, t in jat.items() if os.path.exists(os.path.join(jd, k + '.mp3'))}
+    json.dump(jok, open(os.path.join(AUDIO, 'ja.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0, sort_keys=True)
     print(f'generated={sum(res)} failed={len(res)-sum(res)} available={len(ok)}')
 
 
